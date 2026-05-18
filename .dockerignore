@@ -1,0 +1,22 @@
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+db.sqlite3
+.git/
+.gitignore
+.env
+.env.*
+!.env.example
+staticfiles/
+html/
+*.md
+.cursor/
+.claude/
+agent-transcripts/
+terminals/
+.DS_Store
+*.log
+plan/
+folder plan/

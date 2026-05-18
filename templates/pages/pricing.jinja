@@ -1,0 +1,144 @@
+{% extends 'base.jinja' %}
+{% block title %}Pricing Plans{% endblock %}
+{% block meta_desc %}SuratPro subscription plans{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block nav %}
+  {% include 'components/nav.jinja' %}
+{% endblock %}
+
+{% block content %}
+
+<div x-data="{
+    billing: 'monthly',
+    openFaq: null,
+    faqs: [
+      { q: 'Is it really free to post a job?', a: 'Yes! Clients can post jobs at zero cost on SuratPro. We only charge a small commission when a freelancer is paid — never upfront.' },
+      { q: 'Can I cancel my Pro plan anytime?', a: 'Absolutely. Cancel anytime with no penalty. Your Pro benefits continue until the end of your billing period.' },
+      { q: 'How does escrow protect me?', a: 'When you hire a freelancer, funds are held securely in escrow. They are only released to the freelancer when you confirm satisfaction. If a dispute arises, SuratPro mediates fairly.' },
+      { q: 'Are there any hidden fees?', a: 'None. The commission rates shown are final. No setup fees, no listing fees for clients, and no surprise charges.' },
+      { q: 'Do freelancers need a paid plan?', a: 'Freelancers can use SuratPro for free. Pro gives boosted proposals, featured profile, and lower platform commission.' },
+    ],
+  }">
+
+<!-- HERO -->
+<section style="padding:5rem 5% 3rem;text-align:center;position:relative;overflow:hidden">
+  <div class="pricing-hero-glow" style="position:absolute;inset:0;pointer-events:none"></div>
+  <div style="position:relative;z-index:1">
+    <span style="font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold)">// Plans & Pricing</span>
+    <h1 style="font-family:'Playfair Display',serif;font-size:clamp(2.2rem,4vw,3.5rem);font-weight:900;line-height:1.1;letter-spacing:-1.5px;margin:0.8rem 0">
+      Simple, Transparent<br><em style="font-style:italic;color:var(--gold)">Pricing</em>
+    </h1>
+    <p style="color:var(--text-muted);font-size:0.95rem;max-width:480px;margin:0 auto 2rem;line-height:1.72">Start free. Upgrade when you're ready. No hidden fees, no surprises.</p>
+    <!-- Billing toggle -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:1rem">
+      <div class="toggle-pill">
+        <button class="toggle-btn" :class="{active:billing==='monthly'}" @click="billing='monthly'">Monthly</button>
+        <button class="toggle-btn" :class="{active:billing==='yearly'}" @click="billing='yearly'">Yearly</button>
+      </div>
+      <span x-show="billing==='yearly'" class="pricing-save-pill">Save 30%</span>
+    </div>
+  </div>
+</section>
+
+<!-- PLANS -->
+<section style="padding:0 5% 5rem;max-width:1100px;margin:0 auto">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;align-items:start">
+
+    <!-- FREE -->
+    <div class="plan-card basic">
+      <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.8rem;font-family:'Space Mono',monospace">Free</div>
+      <div style="font-family:'Space Mono',monospace;font-size:2.8rem;font-weight:700;color:var(--white)">₹0</div>
+      <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1.5rem">Forever free. No credit card needed.</div>
+      <a href="{% if request.user.is_authenticated %}/dashboard/{% else %}/auth/register/{% endif %}" style="display:block;text-align:center;padding:0.85rem;border:1.5px solid var(--border-gold);color:var(--gold);border-radius:10px;font-weight:600;font-size:0.9rem;text-decoration:none;transition:all 0.2s;margin-bottom:1.5rem" onmouseover="this.style.background='var(--gold)';this.style.color='var(--dark)'" onmouseout="this.style.background='transparent';this.style.color='var(--gold)'">{% if request.user.is_authenticated %}Dashboard →{% else %}Get Started Free{% endif %}</a>
+      <div style="display:flex;flex-direction:column;gap:0.7rem;font-size:0.85rem">
+        <div class="check">✓ Post up to 2 jobs/month</div>
+        <div class="check">✓ Browse all freelancers</div>
+        <div class="check">✓ Basic messaging</div>
+        <div class="check">✓ Secure escrow payments</div>
+        <div class="cross">✗ Featured job listing</div>
+        <div class="cross">✗ Priority support</div>
+        <div class="cross">✗ Advanced analytics</div>
+        <div class="cross">✗ Verified badge</div>
+      </div>
+    </div>
+
+    <!-- PRO (Popular) -->
+    <div class="plan-card popular">
+      <div style="position:absolute;top:1.2rem;right:1.2rem;background:var(--gold);color:var(--dark);padding:0.2rem 0.7rem;border-radius:100px;font-size:0.68rem;font-weight:700">⭐ Most Popular</div>
+      <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:0.8rem;font-family:'Space Mono',monospace">Pro</div>
+      <div style="display:flex;align-items:baseline;gap:0.4rem;margin-bottom:0.3rem">
+        <span style="font-family:'Space Mono',monospace;font-size:2.8rem;font-weight:700;color:var(--white)" x-text="billing==='monthly' ? '₹999' : '₹699'"></span>
+        <span style="color:var(--text-muted);font-size:0.85rem">/month</span>
+      </div>
+      <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1.5rem">Best for growing businesses & active freelancers</div>
+      <a href="{% if request.user.is_authenticated %}/payments/{% else %}/auth/register/?next=/payments/{% endif %}" class="btn-solid" style="display:block;text-align:center;padding:0.9rem;font-size:0.92rem;border-radius:10px;margin-bottom:1.5rem">Get Pro →</a>
+      <div style="display:flex;flex-direction:column;gap:0.7rem;font-size:0.85rem">
+        <div class="check">✓ Unlimited job postings</div>
+        <div class="check">✓ Featured listings (2×)</div>
+        <div class="check">✓ Priority in search results</div>
+        <div class="check">✓ Advanced analytics dashboard</div>
+        <div class="check">✓ Verified Pro badge</div>
+        <div class="check">✓ Priority support (< 2hr)</div>
+        <div class="check">✓ 20 boosted proposals/month</div>
+        <div class="check">✓ Contract templates</div>
+      </div>
+    </div>
+
+    <!-- ENTERPRISE -->
+    <div class="plan-card enterprise">
+      <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--purple);margin-bottom:0.8rem;font-family:'Space Mono',monospace">Enterprise</div>
+      <div style="font-family:'Space Mono',monospace;font-size:2.8rem;font-weight:700;color:var(--white)">Custom</div>
+      <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1.5rem">For teams, agencies & large businesses</div>
+      <a href="mailto:enterprise@suratpro.in" style="display:block;text-align:center;padding:0.85rem;border:1.5px solid color-mix(in srgb, var(--purple) 45%, transparent);color:var(--purple);border-radius:10px;font-weight:600;font-size:0.9rem;text-decoration:none;transition:all 0.2s;margin-bottom:1.5rem">Contact Sales →</a>
+      <div style="display:flex;flex-direction:column;gap:0.7rem;font-size:0.85rem">
+        <div class="check">✓ Everything in Pro</div>
+        <div class="check">✓ Dedicated account manager</div>
+        <div class="check">✓ Custom commission rates</div>
+        <div class="check">✓ Team collaboration tools</div>
+        <div class="check">✓ White-label options</div>
+        <div class="check">✓ SLA & compliance reports</div>
+        <div class="check">✓ Bulk hiring tools</div>
+        <div class="check">✓ API access</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Commission comparison -->
+  <div style="margin-top:3rem;background:var(--mid);border:1px solid var(--border);border-radius:16px;overflow:hidden">
+    <div style="padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700">Platform Commission Comparison</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1px solid var(--border)">
+      <div style="padding:0.8rem 1.5rem;font-size:0.78rem;font-weight:700;color:var(--text-dim)">Platform</div>
+      <div style="padding:0.8rem 1.5rem;font-size:0.78rem;font-weight:700;text-align:center;color:var(--text-dim)">Free</div>
+      <div style="padding:0.8rem 1.5rem;font-size:0.78rem;font-weight:700;text-align:center;color:var(--gold)">Pro</div>
+      <div style="padding:0.8rem 1.5rem;font-size:0.78rem;font-weight:700;text-align:center;color:var(--purple)">Enterprise</div>
+    </div>
+    <template x-for="row in [{label:'Client Fee',free:'0%',pro:'0%',ent:'0%'},{label:'Freelancer Commission',free:'15%',pro:'10%',ent:'Custom'},{label:'Withdrawal Fee',free:'₹25',pro:'₹0',ent:'₹0'},{label:'Dispute Resolution',free:'Standard',pro:'Priority',ent:'Dedicated'}]">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1px solid var(--border)">
+        <div style="padding:0.9rem 1.5rem;font-size:0.85rem;color:var(--text-muted)" x-text="row.label"></div>
+        <div style="padding:0.9rem 1.5rem;font-size:0.85rem;text-align:center;color:var(--white)" x-text="row.free"></div>
+        <div style="padding:0.9rem 1.5rem;font-size:0.85rem;text-align:center;color:var(--gold);font-weight:600" x-text="row.pro"></div>
+        <div style="padding:0.9rem 1.5rem;font-size:0.85rem;text-align:center;color:var(--purple)" x-text="row.ent"></div>
+      </div>
+    </template>
+  </div>
+
+  <!-- FAQ -->
+  <div style="margin-top:3rem;max-width:700px;margin-left:auto;margin-right:auto">
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;text-align:center;margin-bottom:2rem">Frequently Asked Questions</h2>
+    <template x-for="(faq,i) in faqs" :key="i">
+      <div class="faq-item" @click="openFaq=openFaq===i?null:i">
+        <div class="faq-q">
+          <span x-text="faq.q"></span>
+          <span style="color:var(--gold);font-size:1.1rem;transition:transform 0.2s" :style="openFaq===i?'transform:rotate(45deg)':''" >+</span>
+        </div>
+        <div class="faq-a" x-show="openFaq===i" x-transition x-text="faq.a"></div>
+      </div>
+    </template>
+  </div>
+</section>
+
+</div>
+
+{% endblock %}

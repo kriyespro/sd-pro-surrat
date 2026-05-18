@@ -1,0 +1,7 @@
+<div x-data="{rating: 0}" class="flex gap-1 text-xl">
+  <button type="button" @click="rating=1" :class="rating>=1 ? 'text-amber-400' : 'text-gray-500'">★</button>
+  <button type="button" @click="rating=2" :class="rating>=2 ? 'text-amber-400' : 'text-gray-500'">★</button>
+  <button type="button" @click="rating=3" :class="rating>=3 ? 'text-amber-400' : 'text-gray-500'">★</button>
+  <button type="button" @click="rating=4" :class="rating>=4 ? 'text-amber-400' : 'text-gray-500'">★</button>
+  <button type="button" @click="rating=5" :class="rating>=5 ? 'text-amber-400' : 'text-gray-500'">★</button>
+</div>

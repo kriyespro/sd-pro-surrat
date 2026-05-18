@@ -1,0 +1,15 @@
+<form id="filter-form" class="sp-card p-4 space-y-3" hx-get="{{ url('browse') }}" hx-target="#browse-results" hx-trigger="input delay:400ms, change">
+  <div>
+    <label class="block text-sm mb-1">Search</label>
+    <input class="sp-field w-full" type="text" name="q" value="{{ q|default('') }}" placeholder="name, skill, title">
+  </div>
+  <div>
+    <label class="block text-sm mb-1">Category</label>
+    <select class="sp-field w-full" name="category">
+      <option value="">All</option>
+      {% for c in categories %}
+        <option value="{{ c.slug }}" {% if selected_category == c.slug %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</form>

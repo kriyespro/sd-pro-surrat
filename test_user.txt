@@ -1,0 +1,69 @@
+================================================================================
+  SURATPRO — TEST CREDENTIALS
+================================================================================
+
+ADMIN
+  URL:      http://127.0.0.1:8000/sd/
+  username: admin
+  password: admin1234
+  role:     superuser
+
+────────────────────────────────────────────────────────────────────────────────
+
+CLIENT
+  URL:      http://127.0.0.1:8000/auth/login/
+  username: rahul_shah
+  password: Test1234!
+  role:     client
+  name:     Rahul Shah
+  city:     Surat
+  bio:      Textile entrepreneur looking for top freelance talent
+
+────────────────────────────────────────────────────────────────────────────────
+
+FREELANCERS (all password: Test1234!)
+
+  1. karan_patel        → Full-Stack Developer          ₹2,200/hr  ⭐4.8
+     profile:  http://127.0.0.1:8000/profile/karan_patel/
+     skills:   Python, Django, React.js, PostgreSQL
+     location: Adajan, Surat
+
+  2. nidhi_desai        → UI/UX Designer & Brand Expert  ₹1,500/hr  ⭐5.0
+     profile:  http://127.0.0.1:8000/profile/nidhi_desai/
+     skills:   UI/UX Design, Figma, Logo Design, Adobe Illustrator
+     location: Vesu, Surat
+
+  3. dev_mehta          → Flutter & Mobile Developer      ₹1,800/hr  ⭐4.9
+     profile:  http://127.0.0.1:8000/profile/dev_mehta/
+     skills:   Flutter, Node.js, PostgreSQL
+     location: Athwa, Surat
+
+  4. priya_vora         → CA & GST Expert                 ₹1,200/hr  ⭐4.9
+     profile:  http://127.0.0.1:8000/profile/priya_vora/
+     skills:   GST Filing, Tally ERP, Bookkeeping
+     location: Katargam, Surat
+
+  5. aisha_khan         → Digital Marketing & Meta Ads    ₹950/hr    ⭐4.9
+     profile:  http://127.0.0.1:8000/profile/aisha_khan/
+     skills:   Meta Ads, Instagram Ads, YouTube SEO
+     location: Rander, Surat
+
+  6. vijay_prajapati    → Textile & Saree Designer        ₹1,400/hr  ⭐5.0
+     profile:  http://127.0.0.1:8000/profile/vijay_prajapati/
+     skills:   Textile Design, Garment Export, Embroidery
+     location: Udhna, Surat
+
+────────────────────────────────────────────────────────────────────────────────
+
+KEY URLS
+  Home:        http://127.0.0.1:8000/
+  Browse:      http://127.0.0.1:8000/browse/
+  Post Job:    http://127.0.0.1:8000/jobs/post/
+  Dashboard:   http://127.0.0.1:8000/dashboard/
+  Messages:    http://127.0.0.1:8000/messages/
+  Payments:    http://127.0.0.1:8000/payments/
+  Pricing:     http://127.0.0.1:8000/pricing/
+  Referral:    http://127.0.0.1:8000/referral/
+  Admin:       http://127.0.0.1:8000/sd/
+
+================================================================================

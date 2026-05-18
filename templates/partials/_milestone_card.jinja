@@ -1,0 +1,9 @@
+{% for milestone in milestones %}
+  <article class="sp-card p-4 mb-3">
+    <h4 class="font-semibold">{{ milestone.title }}</h4>
+    <p class="text-sm text-[var(--text-muted)]">{{ milestone.description }}</p>
+    <p class="text-sm mt-2">₹{{ milestone.amount }} • {{ milestone.status }}</p>
+  </article>
+{% else %}
+  <p class="text-[var(--text-muted)]">No milestones yet.</p>
+{% endfor %}

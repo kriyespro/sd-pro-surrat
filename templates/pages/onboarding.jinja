@@ -1,0 +1,57 @@
+{% extends 'base.jinja' %}
+{% block title %}Welcome to SuratPro{% endblock %}
+{% block meta_desc %}Set up your SuratPro profile{% endblock %}
+{% block nav %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="auth-page-bg"></div>
+<nav class="relative z-10 flex items-center justify-between px-[5%] h-16 auth-nav-bar">
+  <a href="{{ url('home') }}" class="logo" style="font-family:'Playfair Display',serif;font-size:1.55rem;font-weight:900;color:var(--white)">Surat<span style="color:var(--gold)">Pro</span></a>
+</nav>
+
+<main class="relative z-10 min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-lg">
+    <div class="sp-card p-8">
+      <div class="text-center mb-6">
+        <span class="text-3xl">{% if step == 1 %}👋{% else %}💼{% endif %}</span>
+        <h1 class="sp-heading text-2xl font-bold mt-2">
+          {% if step == 1 %}Welcome, {{ request.user.first_name or request.user.username }}!{% else %}Your freelancer profile{% endif %}
+        </h1>
+        <p class="text-[var(--text-muted)] text-sm mt-1">
+          {% if step == 1 %}Let's set up your profile in 2 minutes{% else %}Help clients understand your expertise{% endif %}
+        </p>
+      </div>
+
+      {% if request.user.is_freelancer %}
+      <div class="flex gap-2 mb-6">
+        <div class="flex-1 h-1 rounded-full {% if step >= 1 %}bg-[var(--gold)]{% else %}bg-[var(--mid)]{% endif %}"></div>
+        <div class="flex-1 h-1 rounded-full {% if step >= 2 %}bg-[var(--gold)]{% else %}bg-[var(--mid)]{% endif %}"></div>
+      </div>
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data" class="space-y-4">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="step" value="{{ step }}">
+
+        {% for field in form %}
+          <div>
+            <label class="block text-sm font-medium mb-1 text-[var(--text-muted)]">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <p class="text-red-400 text-xs mt-1">{{ field.errors|join(', ') }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        <div class="flex gap-3 pt-2">
+          <button type="submit" class="sp-btn-gold flex-1">
+            {% if step == 1 and request.user.is_freelancer %}Next →{% else %}Finish setup{% endif %}
+          </button>
+          <a href="{{ url('dashboard') }}" class="sp-btn-ghost text-sm">Skip for now</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+{% endblock %}

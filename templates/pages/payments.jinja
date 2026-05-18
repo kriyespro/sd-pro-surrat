@@ -1,0 +1,155 @@
+{% extends 'base.jinja' %}
+{% block title %}Payments & Escrow{% endblock %}
+{% block meta_desc %}Manage payments on SuratPro{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block nav %}
+  {% include 'components/nav.jinja' %}
+{% endblock %}
+
+{% block content %}
+<div x-data="paymentsApp()">
+<div style="max-width:1100px;margin:0 auto;padding:2rem 5%">
+  <div style="margin-bottom:2rem">
+    <span style="font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold)">// Finance</span>
+    <h1 style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;margin-top:0.3rem">Payments & Escrow</h1>
+  </div>
+
+  <!-- Balance cards -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-bottom:2rem">
+    <div class="payments-hero-teal">
+      <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.05)"></div>
+      <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:0.8rem">In Escrow (Protected)</div>
+      <div style="font-family:'Space Mono',monospace;font-size:2rem;font-weight:700;color:var(--white)">₹{{ wallet.escrow_balance }}</div>
+      <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:0.4rem">Across 2 active contracts</div>
+      <div style="margin-top:1rem;font-size:0.75rem;color:rgba(255,255,255,0.5)">🔒 Secured & insured</div>
+    </div>
+    <div class="card" style="padding:1.6rem">
+      <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.8rem">Total Spent (All Time)</div>
+      <div style="font-family:'Space Mono',monospace;font-size:2rem;font-weight:700;color:var(--gold)">₹{{ wallet.balance }}</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.4rem">Across 12 completed jobs</div>
+    </div>
+    <div class="card" style="padding:1.6rem">
+      <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.8rem">Pending Release</div>
+      <div style="font-family:'Space Mono',monospace;font-size:2rem;font-weight:700;color:var(--green)">₹15,000</div>
+      <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.4rem">Awaiting milestone approval</div>
+      <button class="btn-gold" style="margin-top:0.9rem;font-size:0.78rem;padding:0.5rem 1rem" @click="showRelease=true">Release Funds →</button>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:1.5rem">
+    <!-- LEFT: Transactions -->
+    <div>
+      <!-- Filters -->
+      <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+        <template x-for="f in ['All','Escrow','Released','Refunded']">
+          <button @click="filter=f" :style="filter===f?'background:var(--gold);color:var(--dark);border:none':'background:transparent;border:1.5px solid var(--border-gold);color:var(--gold)'" style="padding:0.4rem 0.9rem;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s" x-text="f"></button>
+        </template>
+      </div>
+
+      <div class="card" style="overflow:hidden">
+        <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);font-weight:600;font-size:0.9rem">Transaction History</div>
+        <template x-for="tx in transactions.filter(t=>filter==='All'||t.type===filter)" :key="tx.id">
+          <div class="tx-row">
+            <div style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0" :style="'background:'+tx.bg" x-text="tx.icon"></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:0.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" x-text="tx.title"></div>
+              <div style="font-size:0.73rem;color:var(--text-muted);margin-top:0.15rem" x-text="tx.sub"></div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-family:'Space Mono',monospace;font-size:0.95rem;font-weight:700" :style="tx.amount.startsWith('+')?'color:var(--green)':'color:var(--white)'" x-text="tx.amount"></div>
+              <span class="badge" :class="'badge-'+tx.badge" x-text="tx.type" style="margin-top:0.3rem;display:inline-block"></span>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- RIGHT: Add Funds + Methods -->
+    <div style="display:flex;flex-direction:column;gap:1.2rem">
+      <!-- Add Funds -->
+      <div class="card" style="padding:1.4rem">
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:1.2rem">Add Funds to Wallet</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem">
+          <template x-for="amt in [500,1000,2000,5000,10000]">
+            <button @click="amount=amt" :style="amount===amt?'background:var(--gold);color:var(--dark);border-color:var(--gold)':''" style="padding:0.5rem 0.9rem;border:1.5px solid var(--border-gold);color:var(--gold);border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;background:transparent;transition:all 0.2s;font-family:'DM Sans',sans-serif" x-text="'₹'+amt.toLocaleString('en-IN')"></button>
+          </template>
+        </div>
+        <input type="number" class="field" placeholder="Custom amount (₹)" x-model="customAmount" style="margin-bottom:1rem">
+        <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.2rem">
+          <div class="method-card" :class="{selected:method==='upi'}" @click="method='upi'">
+            <div style="display:flex;align-items:center;gap:0.7rem">
+              <span style="font-size:1.3rem">📱</span>
+              <div><div style="font-size:0.88rem;font-weight:600">UPI</div><div style="font-size:0.72rem;color:var(--text-muted)">GPay, PhonePe, Paytm</div></div>
+              <div x-show="method==='upi'" style="margin-left:auto;color:var(--gold)">✓</div>
+            </div>
+          </div>
+          <div class="method-card" :class="{selected:method==='card'}" @click="method='card'">
+            <div style="display:flex;align-items:center;gap:0.7rem">
+              <span style="font-size:1.3rem">💳</span>
+              <div><div style="font-size:0.88rem;font-weight:600">Debit / Credit Card</div><div style="font-size:0.72rem;color:var(--text-muted)">Visa, Mastercard, RuPay</div></div>
+              <div x-show="method==='card'" style="margin-left:auto;color:var(--gold)">✓</div>
+            </div>
+          </div>
+          <div class="method-card" :class="{selected:method==='netbanking'}" @click="method='netbanking'">
+            <div style="display:flex;align-items:center;gap:0.7rem">
+              <span style="font-size:1.3rem">🏦</span>
+              <div><div style="font-size:0.88rem;font-weight:600">Net Banking</div><div style="font-size:0.72rem;color:var(--text-muted)">All major banks supported</div></div>
+              <div x-show="method==='netbanking'" style="margin-left:auto;color:var(--gold)">✓</div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-gold" style="width:100%;text-align:center" @click="addFunds()">
+          Add ₹<span x-text="(customAmount||amount).toLocaleString('en-IN')"></span> →
+        </button>
+      </div>
+
+      <!-- Escrow Info -->
+      <div class="payments-escrow-note">
+        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal);margin-bottom:0.8rem;font-family:'Space Mono',monospace">// How Escrow Works</div>
+        <div style="display:flex;flex-direction:column;gap:0.6rem;font-size:0.82rem;color:var(--text-muted)">
+          <div>🔒 You fund escrow before work starts</div>
+          <div>✅ Freelancer works, you review deliverables</div>
+          <div>💸 You approve → funds released to freelancer</div>
+          <div>⚖️ Dispute? SuratPro mediates & protects you</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Release Funds Modal -->
+<div x-show="showRelease" class="sp-modal-overlay" @click.self="showRelease=false">
+  <div style="background:var(--dark2);border:1px solid var(--border-gold);border-radius:20px;padding:2rem;max-width:440px;width:100%">
+    <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:0.5rem">Release Payment</h3>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.5rem">By releasing, you confirm the milestone is complete and satisfactory.</p>
+    <div style="background:var(--chip-bg);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1.5rem;font-size:0.85rem">
+      <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem"><span style="color:var(--text-muted)">Milestone</span><span>Frontend Development</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem"><span style="color:var(--text-muted)">Freelancer</span><span>Karan Patel</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--text-muted)">Amount</span><span style="color:var(--gold);font-family:'Space Mono',monospace;font-weight:700">₹15,000</span></div>
+    </div>
+    <div style="display:flex;gap:0.8rem">
+      <button @click="showRelease=false" style="flex:1;padding:0.8rem;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.88rem">Cancel</button>
+      <button class="btn-gold" style="flex:2;text-align:center" @click="releasePayment()">✅ Confirm & Release</button>
+    </div>
+  </div>
+</div>
+
+<div x-show="toast" x-transition style="position:fixed;right:1rem;bottom:1rem;background:var(--mid);border:1px solid var(--border-gold);color:var(--white);padding:0.8rem 1rem;border-radius:10px;z-index:700">
+  <span x-text="toast"></span>
+</div>
+
+<script>
+function paymentsApp() {
+  const txRows = {{ transactions_json|safe }};
+  return {
+    filter:'All', method:'upi', amount:1000, customAmount:'', showRelease:false, toast:'',
+    transactions: txRows,
+    addFunds() { this.toast='Payment gateway flow will open here (Razorpay integration point).'; setTimeout(()=>this.toast='',2200); },
+    releasePayment() { this.showRelease=false; this.toast='Milestone release recorded successfully.'; setTimeout(()=>this.toast='',2200); }
+  }
+}
+</script>
+{% endblock %}

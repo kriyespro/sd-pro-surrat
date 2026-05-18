@@ -1,0 +1,8 @@
+{% for message in messages %}
+  <div class="sp-card p-3 mb-2">
+    <p class="text-sm">{{ message.body }}</p>
+    <span class="text-xs text-[var(--text-muted)]">{{ message.sender.username }}</span>
+  </div>
+{% else %}
+  <p class="text-[var(--text-muted)]">No messages yet.</p>
+{% endfor %}

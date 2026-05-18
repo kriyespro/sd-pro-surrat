@@ -1,0 +1,316 @@
+{% extends 'base.jinja' %}
+{% block title %}Dashboard{% endblock %}
+{% block meta_desc %}Manage your SuratPro account{% endblock %}
+
+{% block body_class %}page-dashboard{% endblock %}
+
+{% block nav %}
+  {% include 'components/nav.jinja' %}
+{% endblock %}
+
+{% block content %}
+<div class="dash-layout" x-data="dashboardState('{{ page }}', '{{ request.user.role }}')">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="{{ url('home') }}" class="logo">Surat<span>Pro</span></a>
+      {% if request.user.is_client %}
+      <div style="font-size:0.72rem;color:var(--text-dim);margin-top:0.2rem">Client dashboard</div>
+      {% else %}
+      <div style="font-size:0.72rem;color:var(--text-dim);margin-top:0.2rem">Freelancer dashboard</div>
+      {% endif %}
+    </div>
+
+    <nav style="padding:0.75rem 1rem;display:flex;flex-direction:column;gap:0.35rem;border-top:1px solid var(--border)">
+      <button type="button" class="btn-sm" style="width:100%;text-align:left;background:transparent;border:1px solid transparent;color:var(--text-muted)"
+              :style="page==='overview' ? 'background:var(--chip-bg);border-color:var(--border-gold);color:var(--gold)' : ''"
+              @click="page='overview'">Overview</button>
+      {% if request.user.is_client %}
+      <button type="button" class="btn-sm" style="width:100%;text-align:left;background:transparent;border:1px solid transparent;color:var(--text-muted)"
+              :style="page==='jobs' ? 'background:var(--chip-bg);border-color:var(--border-gold);color:var(--gold)' : ''"
+              @click="page='jobs'">My jobs</button>
+      {% else %}
+      <a href="{{ url('jobs_list') }}" class="btn-sm" style="width:100%;text-align:left;text-decoration:none;display:block;padding:0.45rem 0.65rem;border-radius:8px;border:1px solid var(--border-gold);color:var(--gold)">Find work</a>
+      {% endif %}
+      <button type="button" class="btn-sm" style="width:100%;text-align:left;background:transparent;border:1px solid transparent;color:var(--text-muted)"
+              :style="page==='proposals' ? 'background:var(--chip-bg);border-color:var(--border-gold);color:var(--gold)' : ''"
+              @click="page='proposals'">{% if request.user.is_client %}Proposals received{% else %}My proposals{% endif %}</button>
+      <button type="button" class="btn-sm" style="width:100%;text-align:left;background:transparent;border:1px solid transparent;color:var(--text-muted)"
+              :style="page==='contracts' ? 'background:var(--chip-bg);border-color:var(--border-gold);color:var(--gold)' : ''"
+              @click="page='contracts'">Contracts</button>
+      <a href="{{ url('messages') }}" class="btn-sm" style="width:100%;text-align:left;text-decoration:none;display:block;padding:0.45rem 0.65rem;border-radius:8px;color:var(--text-muted);border:1px solid var(--border)">Messages</a>
+      <a href="{{ url('profile_edit') }}" class="btn-sm" style="width:100%;text-align:left;text-decoration:none;display:block;padding:0.45rem 0.65rem;border-radius:8px;color:var(--text-muted);border:1px solid var(--border)">Edit profile</a>
+    </nav>
+
+    <div style="padding:1rem 1.4rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:0.75rem">
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#0D6E6E,#E8A830);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;color:var(--dark);flex-shrink:0">{{ request.user.initials }}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ request.user.get_full_name() or request.user.username }}</div>
+        <div style="font-size:0.72rem;color:var(--text-muted)">{{ request.user.get_role_display() }} · {{ subscription_plan_label }}</div>
+      </div>
+      <form method="post" action="{{ url('logout') }}" style="margin:0">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <button type="submit" title="Sign out" style="font-size:0.75rem;color:var(--text-dim);cursor:pointer;background:none;border:none;padding:0">⏏</button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar dash-topbar">
+      <div>
+        <h1 style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700" x-text="pageTitle"></h1>
+        <p style="font-size:0.78rem;color:var(--text-muted)">{{ today_heading }}</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.8rem">
+        <a href="{{ url('notification_list') }}" class="sp-btn-outline" style="padding:0.5rem 0.75rem;font-size:0.85rem;text-decoration:none">🔔</a>
+        {% if request.user.is_client %}
+        <a href="{{ url('post_job') }}" class="btn-gold">+ Post a job</a>
+        {% else %}
+        <a href="{{ url('jobs_list') }}" class="btn-gold">Browse jobs</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div style="padding:1.5rem 2rem;flex:1">
+
+      {# ——— Overview ——— #}
+      <div x-show="page==='overview'" x-cloak>
+        {% if request.user.is_client %}
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.8rem">
+          <div class="stat-card">
+            <span style="font-size:0.72rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Active jobs</span>
+            <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--white);margin-top:0.5rem">{{ dash_stats.active_jobs }}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem">{{ dash_stats.total_jobs }} total posted</div>
+          </div>
+          <div class="stat-card">
+            <span style="font-size:0.72rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Pending proposals</span>
+            <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--gold);margin-top:0.5rem">{{ dash_stats.pending_proposals }}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem">Across your jobs</div>
+          </div>
+          <div class="stat-card">
+            <span style="font-size:0.72rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Active contracts</span>
+            <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--green);margin-top:0.5rem">{{ dash_stats.active_contracts }}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem">In progress</div>
+          </div>
+          <div class="stat-card">
+            <span style="font-size:0.72rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Next step</span>
+            <div style="font-size:0.85rem;color:var(--white);margin-top:0.5rem;line-height:1.4">Review proposals or fund escrow when you hire.</div>
+          </div>
+        </div>
+        {% else %}
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.8rem">
+          <div class="stat-card">
+            <span style="font-size:0.72rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Pending bids</span>
+            <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--gold);margin-top:0.5rem">{{ dash_stats.pending_bids }}</div>
+          </div>
+          <div class="stat-card">
+            <span style="font-size:0.72rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Shortlisted</span>
+            <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--white);margin-top:0.5rem">{{ dash_stats.shortlisted }}</div>
+          </div>
+          <div class="stat-card">
+            <span style="font-size:0.72rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Accepted</span>
+            <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--green);margin-top:0.5rem">{{ dash_stats.accepted }}</div>
+          </div>
+          <div class="stat-card">
+            <span style="font-size:0.72rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Active contracts</span>
+            <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--white);margin-top:0.5rem">{{ dash_stats.active_contracts }}</div>
+          </div>
+        </div>
+        {% endif %}
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+          <div style="background:var(--mid);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+            <div style="padding:1.2rem 1.4rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+              <span style="font-weight:600;font-size:0.95rem">{% if request.user.is_client %}Recent jobs{% else %}Latest proposals{% endif %}</span>
+              <button type="button" class="btn-gold" style="font-size:0.75rem;padding:0.35rem 0.8rem" @click="page={% if request.user.is_client %}'jobs'{% else %}'proposals'{% endif %}">View all</button>
+            </div>
+            {% if request.user.is_client %}
+              {% for job in dash_jobs[:5] %}
+              <a href="{{ url('job_detail', job_id=job.id) }}" class="job-row" style="text-decoration:none;color:inherit;display:flex">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:0.9rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ job.title }}</div>
+                  <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem">{{ job.proposal_count }} proposals · {% if job.pricing_type == 'hourly' %}₹{{ job.budget_min }}–{{ job.budget_max }}/hr{% else %}₹{{ job.budget_min }}–{{ job.budget_max }}{% endif %}</div>
+                </div>
+                <span class="badge {% if job.status == 'active' %}badge-green{% elif job.status in ('closed', 'completed') %}badge-red{% else %}badge-gold{% endif %}">{{ job.get_status_display() }}</span>
+              </a>
+              {% else %}
+              <p style="padding:1.2rem 1.4rem;font-size:0.85rem;color:var(--text-muted)">No jobs yet. Post one to get proposals.</p>
+              {% endfor %}
+            {% else %}
+              {% for proposal in dash_proposals[:5] %}
+              <a href="{{ url('job_detail', job_id=proposal.job.id) }}" class="job-row" style="text-decoration:none;color:inherit;display:flex">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:0.9rem;font-weight:600">{{ proposal.job.title }}</div>
+                  <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem">₹{{ proposal.proposed_rate }} · {{ proposal.delivery_days }} days · {{ proposal.get_status_display() }}</div>
+                </div>
+                <span class="badge badge-gold">{{ proposal.created_at.strftime('%d %b') }}</span>
+              </a>
+              {% else %}
+              <p style="padding:1.2rem 1.4rem;font-size:0.85rem;color:var(--text-muted)">No proposals yet. Browse jobs and send your first bid.</p>
+              {% endfor %}
+            {% endif %}
+          </div>
+
+          <div style="background:var(--mid);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+            <div style="padding:1.2rem 1.4rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+              <span style="font-weight:600;font-size:0.95rem">Contracts</span>
+              <button type="button" class="btn-gold" style="font-size:0.75rem;padding:0.35rem 0.8rem" @click="page='contracts'">View all</button>
+            </div>
+            {% for contract in dash_contracts[:5] %}
+            <a href="{{ url('contract_detail', contract_id=contract.id) }}" class="job-row" style="text-decoration:none;color:inherit;display:flex">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:0.9rem;font-weight:600">{{ contract.job.title }}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem">
+                  {% if request.user.is_client %}with {{ contract.freelancer.get_full_name() or contract.freelancer.username }}{% else %}for {{ contract.client.get_full_name() or contract.client.username }}{% endif %}
+                  · ₹{{ contract.total_value }}
+                </div>
+              </div>
+              <span class="badge {% if contract.status == 'active' %}badge-green{% elif contract.status == 'disputed' %}badge-red{% else %}badge-gold{% endif %}">{{ contract.get_status_display() }}</span>
+            </a>
+            {% else %}
+            <p style="padding:1.2rem 1.4rem;font-size:0.85rem;color:var(--text-muted)">No contracts yet.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      {# ——— Client: My jobs ——— #}
+      {% if request.user.is_client %}
+      <div x-show="page==='jobs'" x-cloak x-data="{ jobFilter: 'all' }">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:0.75rem">
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+            <button type="button" class="btn-sm" :style="jobFilter==='all'?'background:var(--gold);color:var(--dark);border:none':'background:transparent;border:1.5px solid var(--border-gold);color:var(--gold)'" @click="jobFilter='all'">All</button>
+            <button type="button" class="btn-sm" :style="jobFilter==='active'?'background:var(--gold);color:var(--dark);border:none':'background:transparent;border:1.5px solid var(--border-gold);color:var(--gold)'" @click="jobFilter='active'">Active</button>
+            <button type="button" class="btn-sm" :style="jobFilter==='draft'?'background:var(--gold);color:var(--dark);border:none':'background:transparent;border:1.5px solid var(--border-gold);color:var(--gold)'" @click="jobFilter='draft'">Draft</button>
+            <button type="button" class="btn-sm" :style="jobFilter==='closed'?'background:var(--gold);color:var(--dark);border:none':'background:transparent;border:1.5px solid var(--border-gold);color:var(--gold)'" @click="jobFilter='closed'">Closed</button>
+            <button type="button" class="btn-sm" :style="jobFilter==='completed'?'background:var(--gold);color:var(--dark);border:none':'background:transparent;border:1.5px solid var(--border-gold);color:var(--gold)'" @click="jobFilter='completed'">Completed</button>
+          </div>
+          <a href="{{ url('post_job') }}" class="btn-gold">+ Post new job</a>
+        </div>
+        <div style="background:var(--mid);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+          {% for job in dash_jobs %}
+          <div class="job-row" x-show="jobFilter === 'all' || jobFilter === '{{ job.status }}'" style="display:flex">
+            <div style="flex:1;min-width:0">
+              <a href="{{ url('job_detail', job_id=job.id) }}" style="font-size:0.92rem;font-weight:600;margin-bottom:0.2rem;color:inherit;text-decoration:none;display:block">{{ job.title }}</a>
+              <div style="font-size:0.75rem;color:var(--text-muted)">{{ job.category.name if job.category else 'General' }} · {% if job.pricing_type == 'hourly' %}₹{{ job.budget_min }}–{{ job.budget_max }}/hr{% else %}₹{{ job.budget_min }}–{{ job.budget_max }}{% endif %} · {{ job.created_at.strftime('%d %b %Y') }}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <span class="badge {% if job.status == 'active' %}badge-green{% elif job.status in ('closed', 'completed') %}badge-red{% else %}badge-gold{% endif %}">{{ job.get_status_display() }}</span>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem">{{ job.proposal_count }} proposals</div>
+            </div>
+          </div>
+          {% else %}
+          <p style="padding:1.4rem;font-size:0.85rem;color:var(--text-muted)">You have not posted any jobs yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {# ——— Proposals ——— #}
+      <div x-show="page==='proposals'" x-cloak>
+        {% if request.user.is_client %}
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.2rem">{{ dash_stats.pending_proposals }} pending · {{ dash_proposals|length }} total shown</p>
+        {% else %}
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.2rem">Track every bid you have submitted.</p>
+        {% endif %}
+        <div style="display:flex;flex-direction:column;gap:1rem">
+          {% for proposal in dash_proposals %}
+          <div class="proposal-card">
+            <div style="display:flex;align-items:flex-start;gap:1rem;flex-wrap:wrap">
+              <div style="width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--dark);flex-shrink:0;background:linear-gradient(135deg,#0D6E6E,#E8A830)">
+                {% if request.user.is_client %}{{ proposal.freelancer.initials }}{% else %}{{ proposal.job.client.initials }}{% endif %}
+              </div>
+              <div style="flex:1;min-width:200px">
+                <div style="display:flex;align-items:center;gap:0.7rem;flex-wrap:wrap;margin-bottom:0.3rem">
+                  <span style="font-weight:600;font-size:0.95rem">
+                    {% if request.user.is_client %}{{ proposal.freelancer.get_full_name() or proposal.freelancer.username }}{% else %}Client: {{ proposal.job.client.get_full_name() or proposal.job.client.username }}{% endif %}
+                  </span>
+                  <span class="badge badge-gold">{{ proposal.get_status_display() }}</span>
+                  <span style="font-size:0.75rem;color:var(--text-muted)">{{ proposal.created_at.strftime('%d %b %Y, %H:%M') }}</span>
+                </div>
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.7rem">Job: <a href="{{ url('job_detail', job_id=proposal.job.id) }}" style="color:var(--gold)">{{ proposal.job.title }}</a></div>
+                <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.6">{{ proposal.cover_letter[:280] }}{% if proposal.cover_letter|length > 280 %}…{% endif %}</p>
+              </div>
+              <div style="text-align:right;flex-shrink:0">
+                <div style="font-family:'Space Mono',monospace;font-size:1rem;color:var(--gold);font-weight:700">₹{{ proposal.proposed_rate }}</div>
+                <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.7rem">{{ proposal.delivery_days }} days delivery</div>
+                <div style="display:flex;gap:0.5rem;justify-content:flex-end;flex-wrap:wrap">
+                  <a href="{{ url('job_detail', job_id=proposal.job.id) }}" class="btn-sm" style="background:var(--gold-dim);color:var(--gold);border:1px solid var(--border-gold);text-decoration:none">Open job</a>
+                  {% if request.user.is_client and proposal.status == 'pending' %}
+                  <form hx-post="{{ url('accept_proposal', proposal_id=proposal.id) }}" hx-target="closest .proposal-card" hx-swap="outerHTML" style="display:inline">
+                    <button type="submit" class="btn-sm" style="background:var(--green);color:var(--dark);border:none">Accept</button>
+                  </form>
+                  <form hx-post="{{ url('reject_proposal', proposal_id=proposal.id) }}" hx-target="closest .proposal-card" hx-swap="outerHTML" style="display:inline">
+                    <button type="submit" class="btn-sm" style="background:transparent;border:1px solid var(--border-strong);color:var(--text-muted)">Reject</button>
+                  </form>
+                  {% endif %}
+                  {% if request.user.is_client %}
+                  <a href="{{ url('messages_start', user_id=proposal.freelancer.id) }}" class="btn-sm" style="background:transparent;border:1px solid var(--border-strong);color:var(--text-muted);text-decoration:none">Message</a>
+                  {% else %}
+                  <a href="{{ url('messages_start', user_id=proposal.job.client.id) }}" class="btn-sm" style="background:transparent;border:1px solid var(--border-strong);color:var(--text-muted);text-decoration:none">Message</a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <p style="font-size:0.85rem;color:var(--text-muted)">No proposals to show.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      {# ——— Contracts ——— #}
+      <div x-show="page==='contracts'" x-cloak>
+        <div style="display:flex;flex-direction:column;gap:1rem">
+          {% for contract in dash_contracts %}
+          <div style="background:var(--mid);border:1px solid var(--border);border-radius:14px;padding:1.4rem;transition:all 0.2s">
+            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
+              <div style="flex:1;min-width:200px">
+                <a href="{{ url('contract_detail', contract_id=contract.id) }}" style="font-weight:600;font-size:0.95rem;margin-bottom:0.2rem;color:inherit;text-decoration:none;display:block">{{ contract.job.title }}</a>
+                <div style="font-size:0.78rem;color:var(--text-muted)">
+                  {% if request.user.is_client %}Freelancer {{ contract.freelancer.get_full_name() or contract.freelancer.username }}{% else %}Client {{ contract.client.get_full_name() or contract.client.username }}{% endif %}
+                  · started {{ contract.created_at.strftime('%d %b %Y') }}
+                </div>
+              </div>
+              <span class="badge {% if contract.status == 'active' %}badge-green{% elif contract.status == 'disputed' %}badge-red{% else %}badge-gold{% endif %}">{{ contract.get_status_display() }}</span>
+              <div style="font-family:'Space Mono',monospace;font-size:0.95rem;color:var(--gold)">₹{{ contract.total_value }}</div>
+            </div>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+              {% for m in contract.milestones.all() %}
+              <div style="flex:1;min-width:120px;background:var(--chip-bg);border:1px solid var(--border);border-radius:8px;padding:0.7rem;text-align:center">
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.3rem">{{ m.title }}</div>
+                <div style="font-size:0.78rem;font-weight:600;color:{% if m.status in ('released', 'approved') %}var(--green){% else %}var(--gold){% endif %}">{{ m.get_status_display() }}</div>
+                <div style="font-size:0.7rem;color:var(--text-dim);margin-top:0.2rem">₹{{ m.amount }}</div>
+              </div>
+              {% else %}
+              <p style="font-size:0.78rem;color:var(--text-muted)">No milestones recorded.</p>
+              {% endfor %}
+            </div>
+          </div>
+          {% else %}
+          <p style="font-size:0.85rem;color:var(--text-muted)">No contracts yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  [x-cloak] { display: none !important; }
+</style>
+<script>
+function dashboardState(initialPage, role) {
+  const titles = role === 'client'
+    ? { overview: 'Overview', jobs: 'My jobs', proposals: 'Proposals received', contracts: 'Contracts' }
+    : { overview: 'Overview', proposals: 'My proposals', contracts: 'Contracts' };
+  return {
+    page: initialPage,
+    titles,
+    get pageTitle() {
+      return this.titles[this.page] || 'Dashboard';
+    },
+  };
+}
+</script>
+{% endblock %}

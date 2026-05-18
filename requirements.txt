@@ -1,0 +1,16 @@
+django==5.0.6
+jinja2
+django-jinja
+whitenoise
+pillow
+python-decouple
+razorpay
+dj-database-url
+psycopg[binary]
+redis
+celery
+django-storages
+boto3
+gunicorn
+sentry-sdk
+rcssmin

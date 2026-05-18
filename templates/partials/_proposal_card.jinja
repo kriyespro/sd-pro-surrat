@@ -1,0 +1,9 @@
+{% for proposal in proposals %}
+  <article class="sp-card p-4 mb-3">
+    <h3 class="font-semibold">{{ proposal.job.title }}</h3>
+    <p class="text-sm text-[var(--text-muted)] mt-1">{{ proposal.cover_letter[:130] }}{% if proposal.cover_letter|length > 130 %}...{% endif %}</p>
+    <p class="text-sm mt-2">₹{{ proposal.proposed_rate }} • {{ proposal.delivery_days }} days • {{ proposal.status }}</p>
+  </article>
+{% else %}
+  <p class="text-[var(--text-muted)]">No proposals found.</p>
+{% endfor %}

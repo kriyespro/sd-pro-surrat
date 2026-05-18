@@ -1,0 +1,9 @@
+{% for referral in referrals %}
+  <div class="grid grid-cols-3 gap-2 py-2 text-sm sp-row-divider">
+    <div>{{ referral.code }}</div>
+    <div>{{ referral.referred.username }}</div>
+    <div>{% if referral.first_job_bonus_paid %}Paid{% else %}Pending{% endif %}</div>
+  </div>
+{% else %}
+  <p class="text-[var(--text-muted)]">No referrals yet.</p>
+{% endfor %}

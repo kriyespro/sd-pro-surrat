@@ -1,0 +1,156 @@
+{% extends 'base.jinja' %}
+{% block title %}{{ job.title }}{% endblock %}
+{% block meta_desc %}{{ job.description[:120] }}{% endblock %}
+
+{% block nav %}{% include 'components/nav.jinja' %}{% endblock %}
+
+{% block content %}
+<main style="max-width:1080px;margin:0 auto;padding:2rem 5%">
+
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:2rem;align-items:start">
+
+    <!-- Left: Job details -->
+    <div>
+      <!-- Breadcrumb -->
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem">
+        <a href="{{ url('browse') }}" style="color:var(--gold);text-decoration:none">Browse</a>
+        {% if job.category %} / {{ job.category.name }}{% endif %}
+      </div>
+
+      <div class="sp-card p-6 mb-4">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1.2rem">
+          <div>
+            <span style="font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)">
+              {{ job.get_pricing_type_display() }} · {{ job.get_experience_level_display() }} level
+            </span>
+            <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;margin-top:0.3rem;line-height:1.2">{{ job.title }}</h1>
+          </div>
+          <span class="sp-badge {% if job.status == 'active' %}sp-badge-green{% elif job.status == 'closed' %}sp-badge-red{% else %}sp-badge-gold{% endif %}">
+            {{ job.get_status_display() }}
+          </span>
+        </div>
+
+        <!-- Budget & meta strip -->
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;padding:1rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:1.5rem">
+          <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem">
+            <span style="color:var(--text-muted)">Budget</span>
+            <span style="font-family:'Space Mono',monospace;font-weight:700;color:var(--gold)">
+              ₹{{ job.budget_min|int }}–{{ job.budget_max|int }}{% if job.pricing_type == 'hourly' %}/hr{% endif %}
+            </span>
+          </div>
+          {% if job.deadline %}
+          <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem">
+            <span style="color:var(--text-muted)">Deadline</span>
+            <span style="font-weight:600">{{ job.deadline.strftime("%d %b %Y") }}</span>
+          </div>
+          {% endif %}
+          <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem">
+            <span style="color:var(--text-muted)">Posted</span>
+            <span style="font-weight:600">{{ job.created_at.strftime("%d %b %Y") }}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem">
+            <span style="color:var(--text-muted)">Proposals</span>
+            <span style="font-weight:600;color:var(--teal)">{{ proposal_count }}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem">
+            <span style="color:var(--text-muted)">Views</span>
+            <span style="font-weight:600">{{ job.views_count }}</span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <h2 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem">Project description</h2>
+        <div style="color:var(--text-muted);font-size:0.9rem;line-height:1.8;white-space:pre-line">{{ job.description }}</div>
+
+        <!-- Skills required -->
+        {% if job.skills.all() %}
+        <div style="margin-top:1.5rem">
+          <h2 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem">Skills required</h2>
+          <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
+            {% for skill in job.skills.all() %}
+            <span class="sp-badge sp-badge-teal">{{ skill.name }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Client info -->
+      <div class="sp-card p-5">
+        <h2 style="font-size:0.9rem;font-weight:600;margin-bottom:1rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">About the client</h2>
+        <div style="display:flex;align-items:center;gap:0.9rem">
+          <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--gold));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--dark);flex-shrink:0">{{ job.client.initials }}</div>
+          <div>
+            <div style="font-weight:600">{{ job.client.get_full_name() or job.client.username }}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted)">{{ job.client.city or 'Surat' }} · Member since {{ job.client.date_joined.strftime("%b %Y") }}</div>
+          </div>
+          {% if request.user.is_authenticated and request.user.is_freelancer %}
+          <a href="{{ url('messages_start', user_id=job.client.id) }}" class="sp-btn-outline" style="margin-left:auto;text-decoration:none;font-size:0.82rem">Message</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Proposal form / status -->
+    <div style="position:sticky;top:1.5rem">
+
+      {% if not request.user.is_authenticated %}
+      <div class="sp-card p-6 text-center">
+        <p style="color:var(--text-muted);margin-bottom:1rem;font-size:0.9rem">Login to submit a proposal</p>
+        <a href="{{ url('login') }}" class="sp-btn-gold" style="text-decoration:none;display:block;text-align:center">Login / Register</a>
+      </div>
+
+      {% elif request.user.is_client %}
+        {% if job.client.id == request.user.id %}
+        <!-- Own job — show proposal summary -->
+        <div class="sp-card p-6">
+          <h3 style="font-weight:600;margin-bottom:1rem">Your job</h3>
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.6rem;font-size:0.88rem">
+            <span style="color:var(--text-muted)">Proposals received</span>
+            <span style="font-weight:700;color:var(--gold)">{{ proposal_count }}</span>
+          </div>
+          <a href="{{ url('dashboard') }}?page=proposals" class="sp-btn-gold" style="text-decoration:none;display:block;text-align:center;margin-top:1rem">Review proposals</a>
+          <a href="{{ url('messages') }}" class="sp-btn-outline" style="text-decoration:none;display:block;text-align:center;margin-top:0.6rem;font-size:0.82rem">Messages</a>
+        </div>
+        {% else %}
+        <div class="sp-card p-6 text-center">
+          <p style="color:var(--text-muted);font-size:0.9rem">You're registered as a client. Switch to freelancer to submit proposals.</p>
+        </div>
+        {% endif %}
+
+      {% elif request.user.is_freelancer %}
+        {% if job.status != 'active' %}
+        <div class="sp-card p-6 text-center">
+          <p style="color:var(--text-muted);font-size:0.9rem">This job is no longer accepting proposals.</p>
+        </div>
+        {% elif existing_proposal %}
+        <!-- Already proposed -->
+        <div class="sp-card p-6">
+          <h3 style="font-weight:600;margin-bottom:0.75rem">Your proposal</h3>
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;font-size:0.88rem">
+            <span style="color:var(--text-muted)">Status</span>
+            <span class="sp-badge sp-badge-gold">{{ existing_proposal.get_status_display() }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;font-size:0.88rem">
+            <span style="color:var(--text-muted)">Rate</span>
+            <span style="font-weight:700;color:var(--gold)">₹{{ existing_proposal.proposed_rate|int }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:1rem;font-size:0.88rem">
+            <span style="color:var(--text-muted)">Delivery</span>
+            <span>{{ existing_proposal.delivery_days }} days</span>
+          </div>
+          <div id="proposal-result"></div>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:0.5rem">Proposal submitted {{ existing_proposal.created_at.strftime("%d %b %Y") }}</p>
+        </div>
+        {% else %}
+        <!-- Proposal form -->
+        <div class="sp-card p-6">
+          {% include 'partials/_proposal_form.jinja' %}
+        </div>
+        {% endif %}
+      {% endif %}
+
+    </div>
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,74 @@
+SuratPro Feature Checklist — Updated 18 May 2026
+✅ = done (MVP)   🟠 = partial   ⬜ = not started
+
+── User Profiles ──
+✅ Freelancer & client profiles
+✅ Skills, portfolio & bio
+✅ Verified badges
+✅ Ratings & reviews
+
+── Job & Gig Posting ──
+✅ Post projects / gigs
+✅ Category & skill tags
+✅ Budget & deadline
+✅ Fixed / hourly pricing
+
+── Search & Discovery ──
+✅ Keyword search
+✅ Filter by skill / budget
+⬜ Location-based filter
+✅ Sort by rating / price
+
+── Proposals & Bidding ──
+✅ Send proposals / bids
+✅ Cover letter & samples
+✅ Counter-offers
+✅ Bid limit per day
+
+── Contracts & Milestones ──
+✅ Digital contract signing
+✅ Milestone-based payments
+✅ Deliverable tracking
+✅ Revision requests
+
+── Secure Payments ──
+✅ Escrow / fund hold
+🟠 UPI, card, net banking (Razorpay scaffold — live keys not wired)
+✅ Auto-release on approval
+✅ Dispute & refund system
+
+── Messaging & Chat ──
+✅ Real-time inbox
+🟠 File & image sharing (model only — upload not wired in send)
+⬜ Video call integration
+✅ Chat history archive
+
+── Reviews & Ratings ──
+✅ Star rating system
+✅ Written feedback
+✅ Two-way reviews
+✅ Review moderation
+
+── Admin Dashboard ──
+✅ User & job management
+✅ Commission settings
+✅ Reports & analytics
+✅ Content moderation
+
+── Notifications ──
+⬜ Email & SMS alerts
+⬜ Push notifications
+✅ In-app bell alerts
+🟠 Custom preferences (model fields — no settings UI)
+
+── Referral & Affiliates ──
+✅ Referral link sharing
+✅ Commission on signup
+✅ Affiliate dashboard
+✅ Payout tracking
+
+── Subscription / Plans ──
+✅ Free & premium tiers
+✅ Featured listings
+🟠 Boosted proposals (plan field — not enforced on submit)
+✅ Monthly/yearly billing

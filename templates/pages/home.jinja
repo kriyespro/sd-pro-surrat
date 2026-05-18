@@ -1,0 +1,1712 @@
+{% extends 'base.jinja' %}
+{% block title %}Home{% endblock %}
+{% block meta_desc %}Find top freelancers in Surat — developers, designers, textile experts, CA & more. Surat's #1 freelance marketplace.{% endblock %}
+
+{% block extra_head %}
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: transparent;
+  color: var(--white);
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+img { max-width: 100%; display: block; }
+a { text-decoration: none; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--dark); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
+html.theme-dark ::-webkit-scrollbar-thumb { background: var(--teal); border-radius: 4px; }
+
+/* ─── NAV ─── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 5%; height: 64px;
+  background: var(--home-nav-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-gold);
+  transition: all 0.3s;
+}
+nav.scrolled {
+  background: var(--home-nav-scrolled);
+  box-shadow: var(--shadow-md);
+}
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.55rem; font-weight: 900;
+  letter-spacing: -0.5px; color: var(--white); flex-shrink: 0;
+}
+.logo span { color: var(--gold); }
+.nav-links { display: flex; gap: 2rem; list-style: none; font-size: 0.85rem; font-weight: 500; }
+.nav-links a { color: var(--text-muted); transition: color 0.2s; }
+.nav-links a:hover { color: var(--gold); }
+.nav-right { display: flex; gap: 0.7rem; align-items: center; }
+.btn-outline {
+  padding: 0.5rem 1.1rem;
+  border: 1.5px solid var(--border-gold); color: var(--gold);
+  background: transparent; border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 0.83rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  display: inline-flex; align-items: center; white-space: nowrap;
+}
+.btn-outline:hover { background: var(--gold); color: var(--dark); }
+.btn-solid {
+  padding: 0.5rem 1.2rem; background: var(--gold); color: var(--dark);
+  border: none; border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 0.83rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+  display: inline-flex; align-items: center; white-space: nowrap;
+}
+.btn-solid:hover { background: var(--gold-light); transform: translateY(-1px); }
+.hamburger {
+  display: none; flex-direction: column; gap: 5px;
+  cursor: pointer; padding: 6px; background: none; border: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger span {
+  display: block; width: 22px; height: 2px;
+  background: var(--white); border-radius: 2px; transition: all 0.3s;
+}
+.hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+.mobile-nav {
+  display: none; position: fixed; top: 64px; left: 0; right: 0; z-index: 199;
+  background: var(--dark2); border-bottom: 1px solid var(--border-gold);
+  padding: 1.5rem 5% 2rem; flex-direction: column; gap: 0;
+  animation: slideDown 0.25s ease;
+}
+.mobile-nav.open { display: flex; }
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.mobile-nav a {
+  display: block; padding: 0.9rem 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted); font-size: 0.95rem; font-weight: 500; transition: color 0.2s;
+}
+.mobile-nav a:last-child { border-bottom: none; }
+.mobile-nav a:hover { color: var(--gold); }
+.mobile-nav-cta { display: flex; gap: 0.8rem; padding-top: 1.2rem; flex-wrap: wrap; }
+.mobile-nav-cta .btn-outline,
+.mobile-nav-cta .btn-solid { flex: 1; justify-content: center; padding: 0.7rem 1rem; font-size: 0.9rem; }
+
+/* ─────────────────────────────────────
+   HERO — THE BIG SHOW
+   ───────────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 7rem 5% 5rem;
+  position: relative;
+  overflow-x: visible;
+  overflow-y: visible;
+  gap: 2rem;
+}
+
+/* ── Animated gradient bg ── */
+.hero-bg {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 60% at 85% 45%, rgba(13,110,110,0.32) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 50% at 15% 75%, rgba(232,168,48,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse 35% 35% at 50% 10%, rgba(232,168,48,0.06) 0%, transparent 70%);
+  animation: bgShift 10s ease-in-out infinite alternate;
+}
+@keyframes bgShift {
+  from { opacity: 1; }
+  to { opacity: 0.75; filter: hue-rotate(8deg); }
+}
+
+/* ── Particles ── */
+.particles {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+}
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: particleDrift linear infinite;
+  opacity: 0;
+}
+@keyframes particleDrift {
+  0% { transform: translateY(110vh) scale(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+}
+
+/* ── Geo lines ── */
+.geo-lines {
+  position: absolute; top: 0; right: 0;
+  width: 55%; height: 100%; opacity: 0.04;
+  background-image:
+    repeating-linear-gradient(45deg, var(--gold) 0, var(--gold) 1px, transparent 0, transparent 48px),
+    repeating-linear-gradient(-45deg, var(--gold) 0, var(--gold) 1px, transparent 0, transparent 48px);
+  pointer-events: none;
+  animation: geoShift 12s ease-in-out infinite alternate;
+}
+@keyframes geoShift {
+  from { transform: translateX(0); }
+  to { transform: translateX(20px); }
+}
+
+/* ── Hero Left ── */
+.hero-left {
+  position: relative; z-index: 2;
+  animation: fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) both;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--gold-dim); border: 1px solid var(--border-gold);
+  color: var(--gold); padding: 0.4rem 1rem; border-radius: 100px;
+  font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  margin-bottom: 1.8rem;
+  animation: badgePop 0.6s 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes badgePop {
+  from { opacity: 0; transform: scale(0.8) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.hero-badge-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--gold);
+  flex-shrink: 0; animation: dotPulse 1.5s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(232,168,48,0.6); }
+  50% { box-shadow: 0 0 0 5px rgba(232,168,48,0); }
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.35rem, 3.25vw + 1rem, 3.75rem);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+  margin-bottom: 1.35rem;
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--gold);
+  display: block;
+  margin-top: 0.04em;
+}
+.hero-sub {
+  font-size: 1.02rem; color: var(--text-muted); line-height: 1.72;
+  max-width: 460px; margin-bottom: 2rem; font-weight: 300;
+}
+.hero-cta { display: flex; gap: 0.9rem; align-items: center; flex-wrap: wrap; }
+.btn-hero {
+  padding: 0.9rem 1.9rem; background: var(--gold); color: var(--dark);
+  border: none; border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 0.92rem; font-weight: 700;
+  cursor: pointer; transition: all 0.25s;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  position: relative; overflow: hidden;
+}
+.btn-hero::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 60%, transparent 70%);
+  transform: translateX(-100%); transition: transform 0.5s;
+}
+.btn-hero:hover::after { transform: translateX(100%); }
+.btn-hero:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 14px 36px rgba(232,168,48,0.35); }
+.btn-hero-ghost {
+  padding: 0.9rem 1.7rem; background: transparent; color: var(--white);
+  border: 1.5px solid rgba(255,255,255,0.18); border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 0.92rem; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.btn-hero-ghost:hover { border-color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.06); }
+
+/* ── Live stats strip ── */
+.hero-live-strip {
+  display: flex; gap: 1.4rem; margin-top: 2rem; flex-wrap: wrap;
+}
+.live-stat {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.78rem; color: var(--text-muted);
+}
+.live-stat strong { color: var(--white); font-weight: 700; font-size: 0.95rem; }
+.live-stat-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green); flex-shrink: 0;
+  box-shadow: 0 0 8px var(--green);
+  animation: dotPulse 1.8s ease-in-out infinite;
+}
+
+.hero-trust { margin-top: 2rem; display: flex; align-items: center; flex-wrap: wrap; gap: 0; }
+.avatar-stack { display: flex; }
+.avatar-stack-img {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid var(--dark); margin-left: -8px;
+  font-size: 0.7rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--dark); font-family: 'Playfair Display', serif;
+}
+.avatar-stack-img:first-child { margin-left: 0; }
+.hero-trust-text { margin-left: 0.9rem; font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; }
+.hero-trust-text strong { color: var(--white); }
+
+/* ─────────────────────────
+   HERO RIGHT — 3-CARD FAN
+   ───────────────────────── */
+/* Cards anchor at hero midpoint (grid column seam ≈ 50%) and fan to the right */
+.hero-right {
+  position: relative; z-index: 2;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: 620px;
+}
+
+/* Wide scene so three cards sit left→right from center without clipping */
+.cards-scene {
+  position: relative;
+  width: 100%;
+  max-width: 660px;
+  height: 620px;
+  overflow: visible;
+  flex-shrink: 0;
+}
+
+/* ── Shared hero card base ── */
+.hero-card {
+  position: absolute;
+  width: 310px;
+  background: var(--hero-card-gradient);
+  border: 1px solid var(--hero-card-border);
+  border-radius: var(--radius-xl);
+  padding: 1.4rem 1.5rem;
+  box-shadow: var(--hero-card-shadow);
+  transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), box-shadow 0.4s, border-color 0.3s, z-index 0s;
+  cursor: pointer;
+}
+
+/* ── Card 1 — first at hero 50% line (scene left), steps upward ── */
+.hero-card-1 {
+  top: 12%;
+  left: 0;
+  transform: rotate(-7deg) scale(0.93);
+  z-index: 1;
+  animation: cardDrift1 6s 0s ease-in-out infinite;
+  border-color: rgba(232,93,4,0.25);
+}
+.hero-card-1:hover {
+  transform: rotate(-2deg) translateY(-10px) scale(0.97) !important;
+  z-index: 5 !important;
+  border-color: rgba(232,93,4,0.6) !important;
+  box-shadow: var(--hero-hover-1) !important;
+}
+@keyframes cardDrift1 {
+  0%,100% { transform: rotate(-7deg) translateY(0) scale(0.93); }
+  50%      { transform: rotate(-6deg) translateY(-10px) scale(0.93); }
+}
+
+/* ── Card 2 — centered in scene (between start @ 50% hero and right edge) ── */
+.hero-card-2 {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
+  z-index: 3;
+  animation: cardDrift2 5s 0.5s ease-in-out infinite;
+  border-color: rgba(13,110,110,0.4);
+}
+.hero-card-2:hover {
+  transform: translate(-50%, -54%) rotate(0deg) scale(1.03) !important;
+  z-index: 6 !important;
+  border-color: var(--gold) !important;
+  box-shadow: var(--hero-hover-2) !important;
+}
+@keyframes cardDrift2 {
+  0%,100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+  33%      { transform: translate(-50%, -53%) rotate(0.5deg) scale(1); }
+  66%      { transform: translate(-50%, -51%) rotate(-0.4deg) scale(1); }
+}
+
+/* ── Card 3 — scene right edge (furthest into right half) ── */
+.hero-card-3 {
+  bottom: 8%;
+  left: auto;
+  right: 0;
+  transform: rotate(6deg) scale(0.93);
+  z-index: 2;
+  animation: cardDrift3 7s 1.2s ease-in-out infinite;
+  border-color: rgba(139,92,246,0.25);
+}
+.hero-card-3:hover {
+  transform: rotate(2deg) translateY(-10px) scale(0.97) !important;
+  z-index: 5 !important;
+  border-color: rgba(139,92,246,0.6) !important;
+  box-shadow: var(--hero-hover-3) !important;
+}
+@keyframes cardDrift3 {
+  0%,100% { transform: rotate(6deg) translateY(0) scale(0.93); }
+  50%      { transform: rotate(5deg) translateY(-12px) scale(0.93); }
+}
+
+/* Card internals */
+.card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.95rem; }
+.avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; font-weight: 700; color: var(--dark);
+  font-family: 'Playfair Display', serif; flex-shrink: 0;
+}
+.avatar-lg { width: 50px; height: 50px; font-size: 1.1rem; }
+.card-name { font-weight: 600; font-size: 0.88rem; }
+.card-role { font-size: 0.7rem; color: var(--text-muted); margin-top: 1px; }
+.card-badge-pill {
+  margin-left: auto; flex-shrink: 0;
+  background: rgba(232,168,48,0.14); color: var(--gold);
+  padding: 0.2rem 0.5rem; border-radius: 100px;
+  font-size: 0.6rem; font-weight: 700; white-space: nowrap;
+  border: 1px solid var(--border-gold);
+}
+.card-skills { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.95rem; }
+.skill-tag {
+  background: rgba(184,137,46,0.12); color: var(--gold);
+  padding: 0.2rem 0.55rem; border-radius: 4px; font-size: 0.68rem;
+  border: 1px solid rgba(184,137,46,0.28);
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.skill-tag:hover {
+  background: var(--gold-dim);
+  border-color: var(--border-gold);
+  color: var(--gold);
+}
+html.theme-dark .skill-tag {
+  background: rgba(13,110,110,0.28); color: #7FCFCF;
+  border-color: rgba(13,110,110,0.4);
+}
+html.theme-dark .skill-tag:hover {
+  background: rgba(13,110,110,0.4);
+  border-color: rgba(13,110,110,0.55);
+  color: #b8f5f0;
+}
+.card-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--border); padding-top: 0.85rem;
+}
+.card-rate { font-family: 'Space Mono', monospace; font-size: 0.93rem; color: var(--gold); }
+.card-rate small { font-size: 0.62rem; color: var(--text-muted); font-family: 'DM Sans', sans-serif; display: block; }
+.card-stars-wrap { text-align: right; }
+.card-stars { color: var(--gold); font-size: 0.72rem; }
+.card-reviews { font-size: 0.66rem; color: var(--text-muted); }
+
+/* Card accent top bar */
+.card-accent-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+/* Card online indicator */
+.card-online-dot {
+  display: flex; align-items: center; gap: 0.35rem;
+  font-size: 0.68rem; font-weight: 600; margin-top: 0.6rem;
+}
+.card-online-dot::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green); box-shadow: 0 0 8px var(--green);
+  animation: dotPulse 1.5s ease-in-out infinite;
+}
+
+/* ── Floating notification chips ── */
+.float-chip {
+  position: absolute;
+  padding: 0.48rem 0.85rem;
+  border-radius: 10px; font-size: 0.71rem; font-weight: 700;
+  display: flex; align-items: center; gap: 0.4rem;
+  white-space: nowrap; z-index: 10; backdrop-filter: blur(12px);
+}
+.chip-new {
+  top: 6%;
+  right: -6px;
+  left: auto;
+  background: rgba(232,93,4,0.96); color: #fff;
+  box-shadow: 0 8px 24px rgba(232,93,4,0.45);
+  animation: chipFloat 3.5s 0.4s ease-in-out infinite;
+}
+.chip-hired {
+  bottom: 6%;
+  left: 0;
+  background: rgba(13,110,110,0.96); color: #fff;
+  box-shadow: 0 8px 24px rgba(13,110,110,0.5);
+  animation: chipFloat 4.5s 1.2s ease-in-out infinite;
+}
+.chip-payment {
+  top: 36%;
+  left: 50%;
+  background: rgba(62,202,143,0.96); color: #041a10;
+  box-shadow: 0 8px 24px rgba(62,202,143,0.4);
+  animation: chipFloatCentered 4s 2s ease-in-out infinite;
+}
+@keyframes chipFloat {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes chipFloatCentered {
+  0%,100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-8px); }
+}
+
+/* ── Background glow — under stacked fan ── */
+.cards-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(380px, 90%);
+  height: min(380px, 90%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(184,137,46,0.16) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: glowPulse 4s ease-in-out infinite;
+}
+html.theme-dark .cards-glow {
+  background: radial-gradient(circle, rgba(13,110,110,0.22) 0%, transparent 70%);
+}
+@keyframes glowPulse {
+  0%,100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.18); }
+}
+
+/* ─── TRUST BAR ─── */
+.trust-bar {
+  padding: 1.2rem 5%;
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.018);
+  display: flex; align-items: center; gap: 2rem; overflow: hidden;
+}
+.trust-label {
+  font-size: 0.75rem; color: var(--text-dim);
+  letter-spacing: 0.07em; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;
+}
+.trust-scroll {
+  display: flex; gap: 0; align-items: center;
+  overflow: hidden; flex: 1;
+}
+.trust-track {
+  display: flex; gap: 2.5rem; align-items: center;
+  animation: trustScroll 18s linear infinite;
+  white-space: nowrap;
+}
+@keyframes trustScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.trust-item {
+  font-family: 'Space Mono', monospace; font-size: 0.73rem; font-weight: 700;
+  color: rgba(255,255,255,0.22); letter-spacing: 0.13em; text-transform: uppercase;
+  white-space: nowrap; cursor: default; transition: color 0.2s;
+}
+.trust-item:hover { color: rgba(255,255,255,0.55); }
+.trust-dot { color: rgba(232,168,48,0.35); font-size: 0.5rem; }
+
+/* ─── STATS ─── */
+.stats-section { display: grid; grid-template-columns: repeat(4,1fr); }
+.stat-item {
+  padding: 3rem 1.5rem; text-align: center;
+  border-right: 1px solid var(--border); background: var(--dark);
+  position: relative; overflow: hidden; transition: background 0.3s;
+}
+.stat-item:last-child { border-right: none; }
+.stat-item::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 100%, rgba(184,137,46,0.12) 0%, transparent 70%);
+  opacity: 0; transition: opacity 0.4s;
+}
+html.theme-dark .stat-item::before {
+  background: radial-gradient(circle at 50% 100%, rgba(13,110,110,0.15) 0%, transparent 70%);
+}
+.stat-item:hover::before { opacity: 1; }
+.stat-item::after {
+  content: ''; position: absolute; bottom: 0; left: 20%; right: 20%;
+  height: 2px; background: linear-gradient(to right, transparent, var(--gold), transparent);
+  transform: scaleX(0); transform-origin: center; transition: transform 0.4s cubic-bezier(0.22,1,0.36,1);
+}
+.stat-item:hover::after { transform: scaleX(1); }
+.stat-icon { font-size: 1.6rem; margin-bottom: 0.6rem; display: block; opacity: 0.7; }
+.stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.2rem, 3.5vw, 3.2rem); font-weight: 900; color: var(--gold);
+  line-height: 1; margin-bottom: 0.4rem;
+}
+.stat-label { font-size: 0.82rem; color: var(--text-muted); font-weight: 400; }
+
+/* ─── DIVIDER ─── */
+.divider { height: 1px; background: linear-gradient(to right, transparent, rgba(232,168,48,0.18), transparent); }
+
+/* ─── SHARED SECTION HEADER ─── */
+.sec-tag {
+  display: inline-block;
+  font-family: 'Space Mono', monospace; font-size: 0.68rem;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.9rem;
+}
+.sec-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.9rem, 3.2vw, 2.8rem); font-weight: 900; line-height: 1.1;
+  letter-spacing: -1px; margin-bottom: 0.8rem;
+}
+.sec-sub { color: var(--text-muted); font-size: 0.95rem; line-height: 1.72; max-width: 520px; font-weight: 300; }
+
+/* ─── CATEGORIES ─── */
+.categories { padding: 5.5rem 5%; }
+.cats-header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: 2.8rem; gap: 1rem;
+}
+.cat-grid {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem;
+}
+.cat-card {
+  background: var(--mid); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 1.6rem 1.4rem;
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.22,1,0.36,1);
+  position: relative; overflow: hidden; display: block;
+  -webkit-tap-highlight-color: transparent; min-height: 150px;
+}
+.cat-card-glow {
+  position: absolute; inset: 0; border-radius: inherit;
+  background: radial-gradient(circle at 30% 30%, rgba(184,137,46,0.18), transparent 60%);
+  opacity: 0; transition: opacity 0.35s;
+}
+html.theme-dark .cat-card-glow {
+  background: radial-gradient(circle at 30% 30%, rgba(13,110,110,0.25), transparent 60%);
+}
+.cat-card::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(to right, var(--gold), var(--gold-light));
+  transform: scaleX(0); transform-origin: left; transition: transform 0.35s ease;
+}
+html.theme-dark .cat-card::after {
+  background: linear-gradient(to right, var(--teal), var(--gold));
+}
+.cat-card:hover { border-color: var(--border-gold); transform: translateY(-5px); box-shadow: var(--shadow-md); }
+.cat-card:hover .cat-card-glow { opacity: 1; }
+.cat-card:hover::after { transform: scaleX(1); }
+.cat-icon { font-size: 2rem; margin-bottom: 1rem; display: block; transition: transform 0.3s; }
+.cat-card:hover .cat-icon { transform: scale(1.15) rotate(-5deg); }
+.cat-name { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--white); position: relative; }
+.cat-count { font-size: 0.75rem; color: var(--text-dim); position: relative; }
+.cat-arrow {
+  position: absolute; top: 1.2rem; right: 1.2rem;
+  color: rgba(255,255,255,0.12); font-size: 0.95rem; transition: all 0.2s;
+}
+.cat-card:hover .cat-arrow { color: var(--gold); transform: translate(3px,-3px); }
+/* Accent glow by cat */
+.cat-card[data-color="teal"]:hover { box-shadow: 0 20px 50px rgba(184,137,46,0.2); }
+html.theme-dark .cat-card[data-color="teal"]:hover { box-shadow: 0 20px 50px rgba(13,110,110,0.25); }
+.cat-card[data-color="gold"]:hover { box-shadow: 0 20px 50px rgba(232,168,48,0.2); }
+.cat-card[data-color="saffron"]:hover { box-shadow: 0 20px 50px rgba(232,93,4,0.2); }
+
+/* ─── HOW IT WORKS ─── */
+.how {
+  padding: 5.5rem 5%; background: var(--mid);
+  position: relative; overflow: hidden;
+}
+.how::before {
+  content: ''; position: absolute; top: -40%; right: -8%;
+  width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,168,48,0.055) 0%, transparent 70%);
+  pointer-events: none;
+}
+.how::after {
+  content: ''; position: absolute; bottom: -20%; left: -5%;
+  width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(13,110,110,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.how-inner { max-width: 1100px; margin: 0 auto; }
+.how-header { text-align: center; margin-bottom: 3.5rem; }
+.how-header .sec-sub { margin: 0 auto; }
+.steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; position: relative; }
+.steps-connector {
+  position: absolute; top: 2.8rem; left: calc(16.66% + 0.75rem); right: calc(16.66% + 0.75rem);
+  height: 1px; background: linear-gradient(to right, transparent, var(--gold), var(--gold), transparent);
+  opacity: 0.2; pointer-events: none;
+}
+.step {
+  text-align: center; padding: 2.4rem 1.8rem;
+  background: var(--dark2); border: 1px solid var(--border);
+  border-radius: var(--radius-md); transition: all 0.3s; position: relative; overflow: hidden;
+}
+.step-bg-glow {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(232,168,48,0.07), transparent 65%);
+  opacity: 0; transition: opacity 0.35s;
+}
+.step:hover { border-color: var(--border-gold); transform: translateY(-4px); box-shadow: var(--shadow-md); }
+.step:hover .step-bg-glow { opacity: 1; }
+.step-num {
+  width: 56px; height: 56px; border-radius: 50%; background: var(--dark);
+  border: 2px solid var(--gold);
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 1.4rem;
+  font-family: 'Space Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--gold);
+  position: relative; z-index: 1; transition: all 0.3s;
+}
+.step:hover .step-num { background: var(--gold); color: var(--dark); box-shadow: 0 0 0 8px rgba(232,168,48,0.12); }
+.step-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.6rem; position: relative; }
+.step-desc { font-size: 0.84rem; color: var(--text-muted); line-height: 1.72; position: relative; }
+
+/* ─── FREELANCERS ─── */
+.freelancers { padding: 5.5rem 5%; }
+.fl-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; gap: 1rem; }
+.fl-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+
+.fl-card {
+  background: var(--mid); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1.8rem;
+  transition: all 0.35s cubic-bezier(0.22,1,0.36,1); cursor: pointer;
+  display: flex; flex-direction: column; position: relative; overflow: hidden;
+}
+.fl-card-accent {
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease;
+}
+.fl-card:hover .fl-card-accent { transform: scaleX(1); }
+.fl-card:hover { border-color: var(--border-gold); transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+.fl-top { display: flex; align-items: flex-start; gap: 0.9rem; margin-bottom: 1rem; }
+.fl-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--dark);
+  flex-shrink: 0; transition: transform 0.3s;
+}
+.fl-card:hover .fl-avatar { transform: scale(1.1); }
+.fl-info { flex: 1; min-width: 0; }
+.fl-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; }
+.fl-title { font-size: 0.78rem; color: var(--text-muted); }
+.fl-online {
+  flex-shrink: 0; display: flex; align-items: center; gap: 0.35rem;
+  font-size: 0.72rem; color: var(--green); font-weight: 500;
+}
+.fl-online::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green); box-shadow: 0 0 8px var(--green);
+  animation: dotPulse 1.5s ease-in-out infinite;
+}
+.fl-bio { font-size: 0.83rem; color: var(--text-muted); line-height: 1.64; margin-bottom: 1rem; flex: 1; }
+.fl-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 1.4rem; }
+.fl-tag {
+  background: rgba(184,137,46,0.12); color: var(--gold);
+  padding: 0.18rem 0.55rem; border-radius: 4px; font-size: 0.7rem;
+  border: 1px solid rgba(184,137,46,0.28); transition: all 0.2s;
+}
+.fl-tag:hover {
+  background: var(--gold-dim);
+  border-color: var(--border-gold);
+  color: var(--gold);
+}
+html.theme-dark .fl-tag {
+  background: rgba(13,110,110,0.18); color: #7FCFCF;
+  border-color: rgba(13,110,110,0.32);
+}
+html.theme-dark .fl-tag:hover {
+  background: rgba(13,110,110,0.35);
+  border-color: rgba(13,110,110,0.6);
+  color: #b8f5f0;
+}
+.fl-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--border); padding-top: 1rem; margin-top: auto;
+}
+.fl-rate { font-family: 'Space Mono', monospace; font-size: 0.95rem; color: var(--gold); }
+.fl-rate small { color: var(--text-muted); font-size: 0.68rem; font-family: 'DM Sans', sans-serif; }
+.fl-score { display: flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; }
+.star-gold { color: var(--gold); }
+.fl-reviews { font-size: 0.7rem; color: var(--text-muted); }
+.hire-btn {
+  width: 100%; margin-top: 1rem; padding: 0.72rem;
+  background: transparent; border: 1.5px solid var(--border-gold);
+  color: var(--gold); border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 0.83rem; font-weight: 600;
+  cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden;
+}
+.hire-btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 60%, transparent 70%);
+  transform: translateX(-100%); transition: transform 0.5s;
+}
+.hire-btn:hover::after { transform: translateX(100%); }
+.hire-btn:hover { background: var(--gold); color: var(--dark); border-color: var(--gold); }
+
+/* ─── TESTIMONIALS ─── */
+.testimonials { padding: 5.5rem 5%; background: var(--mid); position: relative; overflow: hidden; }
+.testimonials::before {
+  content: '"'; position: absolute; top: -2rem; left: 4%;
+  font-family: 'Playfair Display', serif; font-size: 16rem; font-weight: 900;
+  color: rgba(232,168,48,0.04); line-height: 1; pointer-events: none; user-select: none;
+}
+.testi-header { text-align: center; margin-bottom: 3rem; }
+.testi-header .sec-sub { margin: 0 auto; }
+.testi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+.testi-card {
+  background: var(--dark2); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 1.8rem;
+  position: relative; overflow: hidden; transition: all 0.3s;
+}
+.testi-card:hover { border-color: var(--border-gold); transform: translateY(-4px); box-shadow: var(--shadow-md); }
+.testi-quote {
+  font-size: 0.88rem; color: var(--text-muted); line-height: 1.72;
+  margin-bottom: 1.4rem; font-style: italic;
+}
+.testi-quote::before { content: '"'; color: var(--gold); font-size: 1.4rem; font-style: normal; font-family: 'Playfair Display', serif; }
+.testi-footer { display: flex; align-items: center; gap: 0.75rem; }
+.testi-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif; font-size: 0.85rem; font-weight: 700; color: var(--dark);
+  flex-shrink: 0;
+}
+.testi-name { font-weight: 600; font-size: 0.85rem; }
+.testi-role { font-size: 0.72rem; color: var(--text-muted); }
+.testi-stars { color: var(--gold); font-size: 0.7rem; margin-top: 0.15rem; }
+.testi-card-accent {
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  opacity: 0; transition: opacity 0.3s;
+}
+.testi-card:hover .testi-card-accent { opacity: 1; }
+
+/* ─── CITY SECTION ─── */
+.city-section {
+  padding: 5.5rem 5%;
+  background: linear-gradient(135deg, var(--teal-dark) 0%, var(--dark) 55%);
+  position: relative; overflow: hidden;
+}
+.city-section::after {
+  content: 'SURAT'; position: absolute; bottom: -5rem; right: -1rem;
+  font-family: 'Playfair Display', serif; font-size: 17vw; font-weight: 900;
+  color: rgba(255,255,255,0.025); line-height: 1; pointer-events: none; user-select: none;
+}
+.city-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; position: relative; z-index: 1; }
+.city-features { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.8rem; }
+.city-feat {
+  display: flex; gap: 1.1rem; align-items: flex-start; padding: 1.1rem 1.2rem;
+  background: rgba(255,255,255,0.035); border: 1px solid var(--border);
+  border-radius: var(--radius-md); transition: all 0.25s;
+}
+.city-feat:hover { border-color: rgba(232,168,48,0.25); background: rgba(255,255,255,0.065); transform: translateX(5px); }
+.feat-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 1px; }
+.feat-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+.feat-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+.city-card-big {
+  background: var(--mid2); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-lg); padding: 2rem;
+  box-shadow: var(--shadow-lg);
+}
+.city-map {
+  width: 100%; height: 190px; border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(13,110,110,0.45), rgba(9,79,79,0.85));
+  margin-bottom: 1.4rem;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden; border: 1px solid rgba(13,110,110,0.4);
+}
+.city-map::before {
+  content: ''; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(13,110,110,0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(13,110,110,0.22) 1px, transparent 1px);
+  background-size: 28px 28px;
+  animation: gridMove 8s linear infinite;
+}
+@keyframes gridMove {
+  from { background-position: 0 0; }
+  to { background-position: 28px 28px; }
+}
+.map-pin { position: relative; z-index: 1; text-align: center; }
+.map-dot {
+  width: 14px; height: 14px; background: var(--gold); border-radius: 50%;
+  margin: 0 auto 0.5rem;
+  box-shadow: 0 0 0 6px rgba(232,168,48,0.2), 0 0 20px rgba(232,168,48,0.5);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 6px rgba(232,168,48,0.2), 0 0 18px rgba(232,168,48,0.5); }
+  50% { box-shadow: 0 0 0 14px rgba(232,168,48,0.05), 0 0 32px rgba(232,168,48,0.35); }
+}
+.map-label { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--gold); letter-spacing: 0.1em; }
+.mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+.mini-stat {
+  text-align: center; padding: 1rem 0.8rem;
+  background: rgba(255,255,255,0.03); border-radius: var(--radius-sm);
+  border: 1px solid var(--border); transition: all 0.25s;
+}
+.mini-stat:hover { background: rgba(255,255,255,0.07); border-color: var(--border-gold); }
+.mini-num {
+  font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900;
+  color: var(--gold-light); line-height: 1; margin-bottom: 0.25rem;
+}
+.mini-label { font-size: 0.7rem; color: var(--text-muted); }
+
+/* ─── CTA ─── */
+.cta-section { padding: 7rem 5%; text-align: center; position: relative; overflow: hidden; }
+.cta-section::before {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 700px; height: 400px;
+  background: radial-gradient(ellipse, rgba(232,168,48,0.1) 0%, transparent 65%);
+  pointer-events: none; animation: ctaGlow 6s ease-in-out infinite;
+}
+@keyframes ctaGlow {
+  0%,100% { opacity: 0.8; transform: translate(-50%,-50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%,-50%) scale(1.1); }
+}
+.cta-inner { position: relative; z-index: 1; }
+.cta-section h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.4rem, 4.5vw, 4.2rem); font-weight: 900; line-height: 1.07;
+  letter-spacing: -1.5px; margin-bottom: 1.3rem;
+}
+.cta-section h2 em { font-style: italic; color: var(--gold); }
+.cta-section p { color: var(--text-muted); font-size: 0.98rem; max-width: 460px; margin: 0 auto 2.5rem; line-height: 1.72; }
+.cta-btns { display: flex; gap: 0.9rem; justify-content: center; flex-wrap: wrap; }
+.btn-large {
+  padding: 0.95rem 2.4rem; font-size: 0.95rem; font-weight: 700;
+  border-radius: var(--radius-sm); cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  transition: all 0.25s; font-family: 'DM Sans', sans-serif; position: relative; overflow: hidden;
+}
+.btn-gold { background: var(--gold); color: var(--dark); border: none; }
+.btn-gold::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.22) 60%, transparent 70%);
+  transform: translateX(-100%); transition: transform 0.5s;
+}
+.btn-gold:hover::after { transform: translateX(100%); }
+.btn-gold:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 16px 36px rgba(232,168,48,0.35); }
+.btn-ghost-lg {
+  background: transparent; color: var(--white);
+  border: 1.5px solid rgba(255,255,255,0.18);
+}
+.btn-ghost-lg:hover { border-color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.06); }
+
+/* ─── FOOTER ─── */
+footer {
+  border-top: 1px solid var(--border); padding: 4rem 5%;
+  display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 3rem;
+}
+.footer-logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; color: var(--white); display: inline-block; margin-bottom: 0.8rem; }
+.footer-logo span { color: var(--gold); }
+.footer-tagline { font-size: 0.84rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 1.4rem; }
+.footer-badge {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.73rem; color: var(--text-muted);
+  border: 1px solid var(--border); padding: 0.35rem 0.75rem; border-radius: 100px;
+}
+.footer-badge strong { color: var(--white); }
+.footer-col h4 {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 1.1rem; font-family: 'Space Mono', monospace;
+}
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.55rem; }
+.footer-col ul li a { font-size: 0.86rem; color: var(--text-muted); transition: color 0.2s; }
+.footer-col ul li a:hover { color: var(--white); }
+.footer-bottom {
+  padding: 1.2rem 5%; border-top: 1px solid rgba(255,255,255,0.04);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.76rem; color: rgba(255,255,255,0.2); flex-wrap: wrap; gap: 0.5rem;
+}
+.footer-bottom a { color: var(--gold); font-weight: 600; }
+.footer-bottom a:hover { text-decoration: underline; }
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 1100px) {
+  .hero-right { min-height: 540px; }
+  .cards-scene { height: 540px; max-width: 580px; }
+  .hero-card { width: 275px; }
+  .cards-glow { width: min(340px, 85%); height: min(340px, 85%); }
+  @keyframes cardDrift1 {
+    0%,100% { transform: rotate(-7deg) translateY(0) scale(0.93); }
+    50%      { transform: rotate(-6deg) translateY(-10px) scale(0.93); }
+  }
+  @keyframes cardDrift2 {
+    0%,100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+    33%      { transform: translate(-50%, -53%) rotate(0.5deg) scale(1); }
+    66%      { transform: translate(-50%, -51%) rotate(-0.4deg) scale(1); }
+  }
+  @keyframes cardDrift3 {
+    0%,100% { transform: rotate(6deg) translateY(0) scale(0.93); }
+    50%      { transform: rotate(5deg) translateY(-12px) scale(0.93); }
+  }
+  @keyframes chipFloatCentered {
+    0%,100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-8px); }
+  }
+}
+@media (max-width: 1024px) {
+  .cat-grid { grid-template-columns: repeat(3,1fr); }
+  .fl-grid { grid-template-columns: repeat(2,1fr); }
+  .testi-grid { grid-template-columns: repeat(2,1fr); }
+  footer { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+  .footer-brand { grid-column: 1 / -1; }
+}
+@media (max-width: 768px) {
+  nav { padding: 0 4%; }
+  .nav-links, .nav-right { display: none; }
+  .hamburger { display: flex; }
+  .hero { grid-template-columns: 1fr; padding: 5.5rem 4% 4rem; gap: 2.5rem; min-height: unset; }
+  .hero-right { justify-content: center; min-height: 480px; }
+  .cards-scene { height: 480px; max-width: min(520px, 100%); margin: 0 auto; }
+  .hero-card { width: 255px; }
+  .hero-card-1 { top: 10%; }
+  .cards-glow { width: min(300px, 88%); height: min(300px, 88%); }
+  .hero h1 { letter-spacing: -0.04em; }
+  @keyframes cardDrift1 {
+    0%,100% { transform: rotate(-6deg) translateY(0) scale(0.92); }
+    50%      { transform: rotate(-5deg) translateY(-10px) scale(0.92); }
+  }
+  @keyframes cardDrift2 {
+    0%,100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+    33%      { transform: translate(-50%, -53%) rotate(0.5deg) scale(1); }
+    66%      { transform: translate(-50%, -51%) rotate(-0.4deg) scale(1); }
+  }
+  @keyframes cardDrift3 {
+    0%,100% { transform: rotate(5deg) translateY(0) scale(0.92); }
+    50%      { transform: rotate(4deg) translateY(-12px) scale(0.92); }
+  }
+  @keyframes chipFloatCentered {
+    0%,100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-8px); }
+  }
+  .hero-sub { max-width: 100%; }
+  .trust-bar { gap: 1rem; }
+  .stats-section { grid-template-columns: repeat(2,1fr); }
+  .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
+  .stat-item:nth-child(odd) { border-right: 1px solid var(--border); }
+  .stat-item:nth-child(3), .stat-item:nth-child(4) { border-bottom: none; }
+  .cats-header { flex-direction: column; align-items: flex-start; }
+  .cat-grid { grid-template-columns: repeat(2,1fr); }
+  .steps { grid-template-columns: 1fr; }
+  .steps-connector { display: none; }
+  .fl-header { flex-direction: column; align-items: flex-start; }
+  .fl-grid { grid-template-columns: 1fr; }
+  .testi-grid { grid-template-columns: 1fr; }
+  .city-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+  .city-section::after { font-size: 22vw; }
+  footer { grid-template-columns: 1fr 1fr; padding: 2.5rem 4%; gap: 2rem; }
+  .footer-brand { grid-column: 1 / -1; }
+  .cta-btns { flex-direction: column; align-items: stretch; }
+  .btn-large { justify-content: center; }
+}
+@media (max-width: 480px) {
+  nav { height: 58px; }
+  .logo { font-size: 1.35rem; }
+  .mobile-nav { top: 58px; }
+  .hero { padding: 5rem 4% 3rem; }
+  .hero h1 { font-size: clamp(2.15rem, 7vw, 2.45rem); letter-spacing: -0.035em; }
+  .hero-cta { flex-direction: column; align-items: stretch; }
+  .btn-hero, .btn-hero-ghost { justify-content: center; width: 100%; }
+  .hero-right { min-height: 400px; }
+  .cards-scene { height: 400px; max-width: min(420px, 100%); }
+  .hero-card { width: 218px; padding: 1.1rem 1.1rem; }
+  .hero-card-1 { top: 8%; }
+  .cards-glow { width: min(260px, 90%); height: min(260px, 90%); }
+  @keyframes cardDrift1 {
+    0%,100% { transform: rotate(-6deg) translateY(0) scale(0.9); }
+    50%      { transform: rotate(-5deg) translateY(-8px) scale(0.9); }
+  }
+  @keyframes cardDrift2 {
+    0%,100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+    33%      { transform: translate(-50%, -53%) rotate(0.5deg) scale(1); }
+    66%      { transform: translate(-50%, -51%) rotate(-0.4deg) scale(1); }
+  }
+  @keyframes cardDrift3 {
+    0%,100% { transform: rotate(5deg) translateY(0) scale(0.9); }
+    50%      { transform: rotate(4deg) translateY(-10px) scale(0.9); }
+  }
+  @keyframes chipFloatCentered {
+    0%,100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-8px); }
+  }
+  .card-skills { display: none; }
+  .chip-payment { display: none; }
+  .trust-bar { padding: 1rem 4%; }
+  .stat-item { padding: 2rem 1rem; }
+  .categories { padding: 3.5rem 4%; }
+  .cat-grid { gap: 0.75rem; }
+  .cat-card { padding: 1.2rem 1rem; min-height: 130px; }
+  .how { padding: 3.5rem 4%; }
+  .step { padding: 1.5rem 1.2rem; }
+  .freelancers { padding: 3.5rem 4%; }
+  .fl-card { padding: 1.4rem; }
+  .testimonials { padding: 3.5rem 4%; }
+  .city-section { padding: 3.5rem 4%; }
+  .city-card-big { padding: 1.4rem; }
+  .cta-section { padding: 4rem 4%; }
+  footer { grid-template-columns: 1fr; padding: 2.5rem 4%; gap: 1.8rem; }
+  .footer-brand { grid-column: auto; }
+  .footer-bottom { padding: 1rem 4%; flex-direction: column; text-align: center; }
+}
+@media (max-width: 360px) {
+  .hero h1 { font-size: 1.95rem; }
+  .cat-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block nav %}
+  {% include 'components/nav.jinja' %}
+{% endblock %}
+
+{% block content %}
+<!-- ─── NAV ─── -->
+<!-- nav replaced by Jinja2 include -->
+
+<div class="mobile-nav" id="mobileNav">
+  <a href="/browse/">Find Talent</a>
+  <a href="/browse/">Find Work</a>
+  <a href="/browse/">Categories</a>
+  <a href="/pricing/">Pricing</a>
+  <div class="mobile-nav-cta">
+    {% if request.user.is_authenticated %}
+      <a href="/dashboard/" class="btn-solid">Dashboard →</a>
+    {% else %}
+      <a href="/auth/login/" class="btn-outline">Log In</a>
+      <a href="/auth/register/" class="btn-solid">Get Started →</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="geo-lines"></div>
+  <div class="particles" id="particles"></div>
+
+  <!-- LEFT -->
+  <div class="hero-left">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Surat's #1 Freelance Platform
+    </div>
+    <h1>
+      Hire Brilliant<br>
+      <em>Surat Talent.</em>
+      Build Faster.
+    </h1>
+    <p class="hero-sub">
+      Connect with top-tier freelancers from across Surat — designers, developers, writers, and more. Local expertise, global quality.
+    </p>
+    <div class="hero-cta">
+      <a href="/browse/" class="btn-hero">Find Talent Now →</a>
+      {% if request.user.is_authenticated %}
+        <a href="/dashboard/" class="btn-hero-ghost">▶&nbsp;&nbsp;Go to Dashboard</a>
+      {% else %}
+        <a href="/auth/register/" class="btn-hero-ghost">▶&nbsp;&nbsp;I'm a Freelancer</a>
+      {% endif %}
+    </div>
+
+    <div class="hero-live-strip">
+      <div class="live-stat">
+        <span class="live-stat-dot"></span>
+        <div><strong id="liveFreelancers">4,200+</strong><br>freelancers live</div>
+      </div>
+      <div class="live-stat" style="padding-left:1rem; border-left:1px solid rgba(255,255,255,0.07)">
+        <div><strong>98%</strong><br>satisfaction rate</div>
+      </div>
+      <div class="live-stat" style="padding-left:1rem; border-left:1px solid rgba(255,255,255,0.07)">
+        <div><strong>₹0</strong><br>to post a job</div>
+      </div>
+    </div>
+
+    <div class="hero-trust" style="margin-top:1.8rem">
+      <div class="avatar-stack">
+        <div class="avatar-stack-img" style="background:linear-gradient(135deg,#0D6E6E,#E8A830)">KP</div>
+        <div class="avatar-stack-img" style="background:linear-gradient(135deg,#E85D04,#E8A830)">NS</div>
+        <div class="avatar-stack-img" style="background:linear-gradient(135deg,#1A9090,#3ECA8F)">DM</div>
+        <div class="avatar-stack-img" style="background:linear-gradient(135deg,#6B4FBB,#E8A830)">RJ</div>
+        <div class="avatar-stack-img" style="background:linear-gradient(135deg,#EC4899,#E8A830)">PV</div>
+      </div>
+      <div class="hero-trust-text">
+        <strong>4,200+ freelancers</strong> ready to work<br>in Surat today
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT — 3 cards from hero midpoint (50%) fanning right -->
+  <div class="hero-right">
+    <div class="cards-scene">
+      <div class="cards-glow"></div>
+
+      <!-- ── CARD 1 — Priya — leading edge @ column start (hero 50%) ── -->
+      <div class="hero-card hero-card-1">
+        <div class="card-accent-bar" style="background:linear-gradient(to right,#E85D04,#E8A830)"></div>
+        <div class="card-header">
+          <div class="avatar" style="background:linear-gradient(135deg,#E85D04,#E8A830)">PV</div>
+          <div style="flex:1;min-width:0">
+            <div class="card-name">Priya Vora</div>
+            <div class="card-role">Textile Designer · Surat</div>
+          </div>
+          <div class="card-badge-pill">Pro ✦</div>
+        </div>
+        <div class="card-skills">
+          <span class="skill-tag">Weaving</span>
+          <span class="skill-tag">Fabric CAD</span>
+          <span class="skill-tag">Print Design</span>
+          <span class="skill-tag">Embroidery</span>
+        </div>
+        <div class="card-footer">
+          <div class="card-rate">₹1,200<small>/hr</small></div>
+          <div class="card-stars-wrap">
+            <div class="card-stars">★★★★★ 4.8</div>
+            <div class="card-reviews">87 reviews</div>
+          </div>
+        </div>
+        <div class="card-online-dot" style="color:var(--green)">Available now</div>
+      </div>
+
+      <!-- ── CARD 2 — Riya — middle of fan (center of scene) ── -->
+      <div class="hero-card hero-card-2">
+        <div class="card-accent-bar" style="background:linear-gradient(to right,#0D6E6E,#E8A830,#3ECA8F)"></div>
+        <div class="card-header">
+          <div class="avatar avatar-lg" style="background:linear-gradient(135deg,#0D6E6E,#3ECA8F)">RA</div>
+          <div style="flex:1;min-width:0">
+            <div class="card-name">Riya Agarwal</div>
+            <div class="card-role">UI/UX Designer · Surat</div>
+          </div>
+          <div class="card-badge-pill">Top ⭐</div>
+        </div>
+        <div class="card-skills">
+          <span class="skill-tag">Figma</span>
+          <span class="skill-tag">Product Design</span>
+          <span class="skill-tag">Prototyping</span>
+          <span class="skill-tag">Branding</span>
+        </div>
+        <div class="card-footer">
+          <div class="card-rate">₹1,800<small>/hr</small></div>
+          <div class="card-stars-wrap">
+            <div class="card-stars">★★★★★ 4.9</div>
+            <div class="card-reviews">142 reviews</div>
+          </div>
+        </div>
+        <div class="card-online-dot" style="color:var(--green)">Online · responds in 5 min</div>
+      </div>
+
+      <!-- ── CARD 3 — Karan — trailing edge (right of scene) ── -->
+      <div class="hero-card hero-card-3">
+        <div class="card-accent-bar" style="background:linear-gradient(to right,#8B5CF6,#3ECA8F)"></div>
+        <div class="card-header">
+          <div class="avatar" style="background:linear-gradient(135deg,#0D6E6E,#E8A830)">KP</div>
+          <div style="flex:1;min-width:0">
+            <div class="card-name">Karan Patel</div>
+            <div class="card-role">Full-Stack Dev · Surat</div>
+          </div>
+          <div class="card-badge-pill">Elite 🔥</div>
+        </div>
+        <div class="card-skills">
+          <span class="skill-tag">React</span>
+          <span class="skill-tag">Node.js</span>
+          <span class="skill-tag">AWS</span>
+          <span class="skill-tag">MongoDB</span>
+        </div>
+        <div class="card-footer">
+          <div class="card-rate">₹2,200<small>/hr</small></div>
+          <div class="card-stars-wrap">
+            <div class="card-stars">★★★★★ 4.8</div>
+            <div class="card-reviews">98 reviews</div>
+          </div>
+        </div>
+        <div class="card-online-dot" style="color:var(--green)">Online · 6 jobs done this week</div>
+      </div>
+
+      <!-- Floating chips -->
+      <div class="float-chip chip-new">🔔 New job posted · just now</div>
+      <div class="float-chip chip-payment">💸 Payment released · ₹45,000</div>
+      <div class="float-chip chip-hired">✅ Hired · 2 mins ago</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── TRUST BAR ─── -->
+<div class="trust-bar">
+  <span class="trust-label">Trusted in</span>
+  <div class="trust-scroll">
+    <div class="trust-track" id="trustTrack">
+      <span class="trust-item">Ring Road</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Adajan</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Varachha</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Majura Gate</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Athwa</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Katargam</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Vesu</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Piplod</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Sarthana</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Althan</span><span class="trust-dot">◆</span>
+      <!-- duplicate for seamless scroll -->
+      <span class="trust-item">Ring Road</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Adajan</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Varachha</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Majura Gate</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Athwa</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Katargam</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Vesu</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Piplod</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Sarthana</span><span class="trust-dot">◆</span>
+      <span class="trust-item">Althan</span><span class="trust-dot">◆</span>
+    </div>
+  </div>
+</div>
+
+<!-- ─── STATS ─── -->
+<div class="stats-section">
+  <div class="stat-item reveal">
+    <span class="stat-icon">👥</span>
+    <div class="stat-num">4200</div>
+    <div class="stat-label">Verified Freelancers</div>
+  </div>
+  <div class="stat-item reveal">
+    <span class="stat-icon">✅</span>
+    <div class="stat-num">12800</div>
+    <div class="stat-label">Jobs Completed</div>
+  </div>
+  <div class="stat-item reveal">
+    <span class="stat-icon">⭐</span>
+    <div class="stat-num">98</div>
+    <div class="stat-label">% Client Satisfaction</div>
+  </div>
+  <div class="stat-item reveal">
+    <span class="stat-icon">💰</span>
+    <div class="stat-num" data-prefix="₹" data-suffix="Cr+">2.4</div>
+    <div class="stat-label">Paid to Freelancers</div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ─── CATEGORIES ─── -->
+<section class="categories">
+  <div class="cats-header">
+    <div>
+      <span class="sec-tag">// Explore</span>
+      <h2 class="sec-title">Browse by Category</h2>
+      <p class="sec-sub">From IT to textiles — find professionals across every field Surat excels at.</p>
+    </div>
+    <a href="/browse/" class="btn-outline" style="flex-shrink:0">View All →</a>
+  </div>
+  <div class="cat-grid">
+    <a class="cat-card reveal" href="/browse/" data-color="teal">
+      <div class="cat-card-glow"></div>
+      <span class="cat-icon">💻</span>
+      <div class="cat-name">Web & App Dev</div>
+      <div class="cat-count">1,240 freelancers</div>
+      <span class="cat-arrow">↗</span>
+    </a>
+    <a class="cat-card reveal" href="/browse/" data-color="gold">
+      <div class="cat-card-glow"></div>
+      <span class="cat-icon">🎨</span>
+      <div class="cat-name">Design & Creative</div>
+      <div class="cat-count">890 freelancers</div>
+      <span class="cat-arrow">↗</span>
+    </a>
+    <a class="cat-card reveal" href="/browse/" data-color="saffron">
+      <div class="cat-card-glow"></div>
+      <span class="cat-icon">🧵</span>
+      <div class="cat-name">Textile & Fashion</div>
+      <div class="cat-count">560 freelancers</div>
+      <span class="cat-arrow">↗</span>
+    </a>
+    <a class="cat-card reveal" href="/browse/" data-color="teal">
+      <div class="cat-card-glow"></div>
+      <span class="cat-icon">📊</span>
+      <div class="cat-name">Finance & Accounts</div>
+      <div class="cat-count">430 freelancers</div>
+      <span class="cat-arrow">↗</span>
+    </a>
+    <a class="cat-card reveal" href="/browse/" data-color="gold">
+      <div class="cat-card-glow"></div>
+      <span class="cat-icon">✍️</span>
+      <div class="cat-name">Content & Writing</div>
+      <div class="cat-count">380 freelancers</div>
+      <span class="cat-arrow">↗</span>
+    </a>
+    <a class="cat-card reveal" href="/browse/" data-color="saffron">
+      <div class="cat-card-glow"></div>
+      <span class="cat-icon">📱</span>
+      <div class="cat-name">Social & Marketing</div>
+      <div class="cat-count">510 freelancers</div>
+      <span class="cat-arrow">↗</span>
+    </a>
+    <a class="cat-card reveal" href="/browse/" data-color="gold">
+      <div class="cat-card-glow"></div>
+      <span class="cat-icon">💎</span>
+      <div class="cat-name">Diamond & Jewellery</div>
+      <div class="cat-count">220 freelancers</div>
+      <span class="cat-arrow">↗</span>
+    </a>
+    <a class="cat-card reveal" href="/browse/" data-color="teal">
+      <div class="cat-card-glow"></div>
+      <span class="cat-icon">🏗️</span>
+      <div class="cat-name">Architecture & Civil</div>
+      <div class="cat-count">310 freelancers</div>
+      <span class="cat-arrow">↗</span>
+    </a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── HOW IT WORKS ─── -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="how-header">
+      <span class="sec-tag">// Process</span>
+      <h2 class="sec-title">Simple as 1, 2, 3</h2>
+      <p class="sec-sub">From idea to execution in under a day. No agencies, no overhead — just local talent, direct.</p>
+    </div>
+    <div class="steps">
+      <div class="steps-connector"></div>
+      <div class="step reveal">
+        <div class="step-bg-glow"></div>
+        <div class="step-num">01</div>
+        <h3 class="step-title">Post Your Project</h3>
+        <p class="step-desc">Describe what you need. Set your budget and timeline. Free to post — takes under 5 minutes.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-bg-glow"></div>
+        <div class="step-num">02</div>
+        <h3 class="step-title">Match with Talent</h3>
+        <p class="step-desc">Browse proposals from vetted Surat freelancers. Review profiles, portfolios, and reviews — pick your perfect match.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-bg-glow"></div>
+        <div class="step-num">03</div>
+        <h3 class="step-title">Pay When Satisfied</h3>
+        <p class="step-desc">Funds held securely in escrow. Release payment only when 100% happy. Full buyer protection, always.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── FEATURED FREELANCERS ─── -->
+<section class="freelancers">
+  <div class="fl-header">
+    <div>
+      <span class="sec-tag">// Talent</span>
+      <h2 class="sec-title">Featured Professionals</h2>
+      <p class="sec-sub">Hand-picked top performers from across Surat, ready to work today.</p>
+    </div>
+    <a href="/browse/" class="btn-outline" style="flex-shrink:0">Browse All →</a>
+  </div>
+  <div class="fl-grid">
+    {% for fp in featured_profiles %}
+      <div class="fl-card reveal">
+        <div class="fl-card-accent" style="background:linear-gradient(to right,#0D6E6E,#3ECA8F)"></div>
+        <div class="fl-top">
+          <div class="fl-avatar" style="background:linear-gradient(135deg,#0D6E6E,#E8A830)">{{ fp.user.initials }}</div>
+          <div class="fl-info"><div class="fl-name">{{ fp.user.get_full_name() or fp.user.username }}</div><div class="fl-title">{{ fp.title }}</div></div>
+          <div class="fl-online">{{ 'Online' if fp.availability == 'available' else 'Busy' }}</div>
+        </div>
+        <p class="fl-bio">{{ fp.user.bio }}</p>
+        <div class="fl-tags">
+          {% for skill in fp.skills.all()[:4] %}
+            <span class="fl-tag">{{ skill.name }}</span>
+          {% endfor %}
+        </div>
+        <div class="fl-bottom">
+          <div class="fl-rate">₹{{ fp.hourly_rate }} <small>/hr</small></div>
+          <div><div class="fl-score"><span class="star-gold">★</span> {{ fp.avg_rating }}</div><div class="fl-reviews">{{ fp.total_reviews }} reviews</div></div>
+        </div>
+        <a href="/profile/{{ fp.user.username }}/" class="hire-btn" style="display:block;text-align:center;text-decoration:none">View Profile →</a>
+      </div>
+    {% else %}
+      <div class="fl-card reveal">
+        <div class="fl-top"><div class="fl-info"><div class="fl-name">No freelancers yet</div></div></div>
+        <p class="fl-bio">Run seed data to populate featured talent cards.</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── TESTIMONIALS ─── -->
+<section class="testimonials" id="reviews">
+  <div class="testi-header">
+    <span class="sec-tag">// Reviews</span>
+    <h2 class="sec-title">Surat Speaks</h2>
+    <p class="sec-sub">Real words from real businesses who grew with SuratPro.</p>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card reveal">
+      <div class="testi-card-accent" style="background:linear-gradient(to right,#0D6E6E,#E8A830)"></div>
+      <p class="testi-quote">Found an amazing developer within 2 hours of posting. The work was delivered on time and the quality was truly outstanding. Will never go back to agencies.</p>
+      <div class="testi-footer">
+        <div class="testi-avatar" style="background:linear-gradient(135deg,#0D6E6E,#E8A830)">SM</div>
+        <div>
+          <div class="testi-name">Sanjay Mehta</div>
+          <div class="testi-role">Director, Mehta Textiles · Varachha</div>
+          <div class="testi-stars">★★★★★</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="testi-card-accent" style="background:linear-gradient(to right,#E85D04,#E8A830)"></div>
+      <p class="testi-quote">SuratPro helped me land 3 consistent clients in my first month as a freelance designer. The platform is built for Surat people by Surat people — you can feel it.</p>
+      <div class="testi-footer">
+        <div class="testi-avatar" style="background:linear-gradient(135deg,#E85D04,#E8A830)">DK</div>
+        <div>
+          <div class="testi-name">Dhara Kapadia</div>
+          <div class="testi-role">Freelance Designer · Adajan</div>
+          <div class="testi-stars">★★★★★</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="testi-card-accent" style="background:linear-gradient(to right,#8B5CF6,#3ECA8F)"></div>
+      <p class="testi-quote">The escrow payment system gave me real confidence hiring for the first time. Everything was transparent and we got our jewellery CAD done at half the market price.</p>
+      <div class="testi-footer">
+        <div class="testi-avatar" style="background:linear-gradient(135deg,#8B5CF6,#3ECA8F)">HR</div>
+        <div>
+          <div class="testi-name">Hetal Raval</div>
+          <div class="testi-role">Owner, Raval Jewels · Majura Gate</div>
+          <div class="testi-stars">★★★★★</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── CITY SECTION ─── -->
+<section class="city-section">
+  <div class="city-inner">
+    <div>
+      <span class="sec-tag">// Why Local</span>
+      <h2 class="sec-title">Built for<br><em style="font-style:italic;color:var(--gold)">Surat's DNA</em></h2>
+      <p class="sec-sub">Not a generic platform. SuratPro is purpose-built around the industries, culture, and ambitions of the Diamond City.</p>
+      <div class="city-features">
+        <div class="city-feat">
+          <span class="feat-icon">🏙️</span>
+          <div>
+            <div class="feat-title">Hyper-Local Network</div>
+            <div class="feat-desc">Every freelancer is verified and based in Surat. Meet in person, work faster, build real relationships.</div>
+          </div>
+        </div>
+        <div class="city-feat">
+          <span class="feat-icon">🔒</span>
+          <div>
+            <div class="feat-title">Secure Escrow Payments</div>
+            <div class="feat-desc">Your money stays protected. Pay only when 100% satisfied — UPI, NEFT, and wallet supported.</div>
+          </div>
+        </div>
+        <div class="city-feat">
+          <span class="feat-icon">🌐</span>
+          <div>
+            <div class="feat-title">Gujarati & English Support</div>
+            <div class="feat-desc">Full platform in Gujarati. Talk to support in your own language, zero friction.</div>
+          </div>
+        </div>
+        <div class="city-feat">
+          <span class="feat-icon">⚡</span>
+          <div>
+            <div class="feat-title">Instant Matching</div>
+            <div class="feat-desc">AI-powered matching surfaces the right freelancer in seconds — not days. Get proposals within the hour.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="city-visual reveal">
+      <div class="city-card-big">
+        <div class="city-map">
+          <div class="map-pin">
+            <div class="map-dot"></div>
+            <div class="map-label">SURAT, GUJARAT</div>
+          </div>
+        </div>
+        <div class="mini-grid">
+          <div class="mini-stat"><div class="mini-num">70+</div><div class="mini-label">Localities Covered</div></div>
+          <div class="mini-stat"><div class="mini-num">24h</div><div class="mini-label">Avg First Response</div></div>
+          <div class="mini-stat"><div class="mini-num">₹0</div><div class="mini-label">Free to Post Jobs</div></div>
+          <div class="mini-stat"><div class="mini-num">5★</div><div class="mini-label">Platform Rating</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA ─── -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <span class="sec-tag">// Get Started Today</span>
+    <h2>Surat Works.<br><em>You Grow.</em></h2>
+    <p>Join thousands of businesses and freelancers already thriving on SuratPro. Free to start, forever.</p>
+    <div class="cta-btns">
+      {% if request.user.is_authenticated %}
+        <a href="/dashboard/" class="btn-large btn-gold">Go to Dashboard →</a>
+      {% else %}
+        <a href="/jobs/post/" class="btn-large btn-gold">Post a Job — It's Free</a>
+        <a href="/auth/register/" class="btn-large btn-ghost-lg">Create Freelancer Profile</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-brand">
+    <a href="/" class="footer-logo">Surat<span>Pro</span></a>
+    <p class="footer-tagline">Surat's dedicated freelance marketplace. Local talent, global standards. Built with pride for the Diamond City.</p>
+    <div class="footer-badge">A mega project by <strong>&nbsp;Winning Blueprints</strong></div>
+  </div>
+  <div class="footer-col">
+    <h4>For Clients</h4>
+    <ul>
+      <li><a href="/jobs/post/">Post a Job</a></li>
+      <li><a href="/browse/">Find Freelancers</a></li>
+      <li><a href="/pricing/">Enterprise Plans</a></li>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#reviews">Success Stories</a></li>
+    </ul>
+  </div>
+  <div class="footer-col">
+    <h4>For Freelancers</h4>
+    <ul>
+      <li><a href="{% if request.user.is_authenticated %}/dashboard/{% else %}/auth/register/{% endif %}">Create Profile</a></li>
+      <li><a href="/browse/">Find Jobs</a></li>
+      <li><a href="/dashboard/">Dashboard</a></li>
+      <li><a href="/messages/">Messages</a></li>
+      <li><a href="/referral/">Refer & Earn</a></li>
+    </ul>
+  </div>
+  <div class="footer-col">
+    <h4>Company</h4>
+    <ul>
+      <li><a href="/">About SuratPro</a></li>
+      <li><a href="/pricing/">Pricing</a></li>
+      <li><a href="/referral/">Affiliates</a></li>
+      <li><a href="/payments/">Payments</a></li>
+      <li><a href="{% if request.user.is_authenticated %}/dashboard/{% else %}/auth/register/{% endif %}">{% if request.user.is_authenticated %}Dashboard{% else %}Sign Up{% endif %}</a></li>
+    </ul>
+  </div>
+</footer>
+<div class="footer-bottom">
+  <span>© 2025 SuratPro. All rights reserved.</span>
+  <span>A mega project by <a href="/">Winning Blueprints</a> &nbsp;·&nbsp; Surat, Gujarat 🇮🇳</span>
+</div>
+
+<script>
+/* ─── Hamburger ─── */
+const menuBtn = document.getElementById('menuBtn');
+const mobileNav = document.getElementById('mobileNav');
+if (menuBtn && mobileNav) {
+  menuBtn.addEventListener('click', () => {
+    menuBtn.classList.toggle('open');
+    mobileNav.classList.toggle('open');
+  });
+  mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    menuBtn.classList.remove('open'); mobileNav.classList.remove('open');
+  }));
+}
+
+/* ─── Nav scroll ─── */
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('mainNav');
+  if (nav) nav.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+/* ─── Floating particles ─── */
+const particleContainer = document.getElementById('particles');
+const colors = ['rgba(232,168,48,0.6)', 'rgba(13,110,110,0.7)', 'rgba(62,202,143,0.5)', 'rgba(232,93,4,0.4)'];
+for (let i = 0; i < 28; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const size = Math.random() * 5 + 2;
+  p.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${Math.random()*100}%;
+    background:${colors[Math.floor(Math.random()*colors.length)]};
+    animation-duration:${Math.random()*12+8}s;
+    animation-delay:${Math.random()*12}s;
+  `;
+  particleContainer.appendChild(p);
+}
+
+/* ─── Scroll reveal ─── */
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 90);
+      revealObs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+/* ─── Stat counter ─── */
+function animateCount(el) {
+  const prefix = el.dataset.prefix || '';
+  const suffix = el.dataset.suffix || '';
+  const raw = el.textContent.trim();
+  const num = parseFloat(raw.replace(/[^0-9.]/g, ''));
+  if (isNaN(num)) return;
+  const isFloat = raw.includes('.');
+  const duration = 1400;
+  const start = performance.now();
+  function update(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    const val = num * ease;
+    el.textContent = prefix + (isFloat ? val.toFixed(1) : Math.round(val).toLocaleString('en-IN')) + suffix;
+    if (p < 1) requestAnimationFrame(update);
+    else {
+      if (el.dataset.suffix === '%') el.textContent = prefix + num + suffix;
+    }
+  }
+  requestAnimationFrame(update);
+}
+
+const statObs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      animateCount(entry.target);
+      statObs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.stat-num').forEach(el => statObs.observe(el));
+
+/* ─── Live freelancer count ticker ─── */
+let baseCount = 4200;
+setInterval(() => {
+  const delta = Math.floor(Math.random() * 3) - 1;
+  baseCount = Math.max(4195, baseCount + delta);
+  const el = document.getElementById('liveFreelancers');
+  if (el) el.textContent = baseCount.toLocaleString('en-IN') + '+';
+}, 4000);
+
+/* ─── Tilt effect on side cards ─── */
+document.querySelectorAll('.fl-card').forEach(card => {
+  card.addEventListener('mousemove', (e) => {
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    card.style.transform = `translateY(-6px) rotateX(${-y*4}deg) rotateY(${x*4}deg)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,786 @@
+================================================================================
+  SURATPRO — DJANGO SAAS DEVELOPMENT PLAN
+  Surat's #1 Freelance Marketplace
+  Stack: Django 5 · Jinja2 · HTMX · Alpine.js · Tailwind CSS CDN · SQLite→PG
+================================================================================
+
+EXISTING HTML TEMPLATES (convert to Jinja2):
+  index.html        → pages/home.jinja
+  login.html        → pages/auth/login.jinja (tabbed login/register)
+  browse.html       → pages/browse.jinja
+  profile.html      → pages/profile.jinja
+  post-job.html     → pages/post_job.jinja
+  dashboard.html    → pages/dashboard.jinja
+  messages.html     → pages/messages.jinja
+  payments.html     → pages/payments.jinja
+  pricing.html      → pages/pricing.jinja
+  referral.html     → pages/referral.jinja
+
+================================================================================
+PHASE 0 — PROJECT SETUP  (Day 1)
+================================================================================
+
+GOAL: Django project skeleton, settings, apps, base template
+
+TASKS:
+  [x] django-admin startproject core .
+  [x] Create apps: users/ jobs/ proposals/ contracts/ payments/
+                   messaging/ reviews/ notifications/ referrals/ billing/
+  [x] Install: django, jinja2, django-jinja, htmx, whitenoise, pillow
+               razorpay, django-storages, celery, redis, channels
+  [x] core/settings.py
+      - TEMPLATES: Jinja2 first, DjangoTemplates for admin (/sd/)
+      - INSTALLED_APPS: all apps above
+      - STATIC_URL, MEDIA_URL
+      - AUTH_USER_MODEL = 'users.User'
+  [x] core/jinja2.py  → custom environment (csrf_input, url, static, request)
+  [x] templates/base.jinja  → nav + footer shell from index.html theme
+  [x] templates/layouts/dashboard.jinja → sidebar layout from dashboard.html
+  [x] static/  → copy gold/teal CSS variables as style.css
+  [x] manage.py runserver → confirm bare home page loads
+  [x] durga.py  → dev runner (clear cache + runserver)
+
+FILES:
+  manage.py / durga.py / requirements.txt / .env.example
+  core/settings.py / core/urls.py / core/jinja2.py / core/wsgi.py
+
+================================================================================
+PHASE 1 — AUTH & USER PROFILES  (Day 2-3)
+================================================================================
+
+FEATURE MAP (durga.txt lines 1-5):
+  Freelancer & client profiles · Skills, portfolio & bio
+  Verified badges · Ratings & reviews
+
+MODELS (users/models.py):
+  class User(AbstractUser):
+      role = CharField(choices=['client','freelancer'])
+      phone = CharField()
+      avatar = ImageField()
+      city = CharField()        # Surat locality
+      bio = TextField()
+      is_verified = BooleanField()
+      referral_code = CharField()
+      created_at = DateTimeField()
+
+  class FreelancerProfile(Model):
+      user = OneToOneField(User)
+      title = CharField()           # "Full-Stack Developer"
+      skills = ManyToManyField(Skill)
+      hourly_rate = DecimalField()
+      min_project = DecimalField()
+      availability = CharField()    # online/busy/offline
+      response_time = CharField()
+      portfolio_url = URLField()
+      linkedin = URLField()
+      experience_years = IntegerField()
+
+  class Skill(Model):
+      name = CharField(unique=True)
+      category = ForeignKey(Category)
+
+  class Category(Model):
+      name = CharField()
+      icon = CharField()            # emoji
+      slug = SlugField()
+
+  class PortfolioItem(Model):
+      freelancer = ForeignKey(FreelancerProfile)
+      title = CharField()
+      description = TextField()
+      image = ImageField()
+      url = URLField()
+      tags = ManyToManyField(Skill)
+
+  class Certification(Model):
+      freelancer = ForeignKey(FreelancerProfile)
+      title = CharField()
+      issuer = CharField()
+      year = IntegerField()
+
+VIEWS (users/views.py):
+  RegisterView      → POST /auth/register/
+  LoginView         → POST /auth/login/
+  LogoutView        → POST /auth/logout/
+  ProfileView       → GET  /profile/<username>/        → profile.jinja
+  ProfileEditView   → GET/POST /dashboard/profile/edit/
+  OnboardingView    → GET/POST /onboarding/            → role + basic info
+
+URLS: users/urls.py → prefix: auth/ + profile/ + onboarding/
+
+TEMPLATES:
+  pages/auth/login.jinja     ← login.html (tab: login/register)
+  pages/auth/register.jinja  ← login.html (tab: register, role cards)
+  pages/profile.jinja        ← profile.html (about/portfolio/reviews tabs)
+  pages/onboarding.jinja     ← new: step wizard
+
+HTMX:
+  hx-post="/auth/login/"          → swap #auth-form with errors or redirect
+  hx-post="/auth/register/"       → same
+  hx-get="/profile/edit/skills/"  → swap #skills-section (live skill add)
+
+FORMS:
+  RegisterForm / LoginForm / ProfileEditForm / FreelancerProfileForm
+
+================================================================================
+PHASE 2 — JOB & GIG POSTING  (Day 4-5)
+================================================================================
+
+FEATURE MAP (durga.txt lines 6-10):
+  Post projects/gigs · Category & skill tags · Budget & deadline
+  Fixed/hourly pricing
+
+MODELS (jobs/models.py):
+  class Job(Model):
+      client = ForeignKey(User)
+      title = CharField()
+      description = TextField()
+      category = ForeignKey(Category)
+      skills = ManyToManyField(Skill)
+      pricing_type = CharField(choices=['fixed','hourly'])
+      budget_min = DecimalField()
+      budget_max = DecimalField()
+      deadline = DateField()
+      experience_level = CharField(choices=['entry','mid','expert'])
+      location_pref = CharField(choices=['surat','gujarat','remote'])
+      visibility = CharField(choices=['public','invite'])
+      milestone_type = CharField(choices=['single','multiple'])
+      status = CharField(choices=['draft','active','closed','completed'])
+      is_featured = BooleanField()
+      views_count = IntegerField()
+      created_at = DateTimeField()
+
+VIEWS (jobs/views.py):
+  PostJobView        → GET/POST /jobs/post/     (4-step form) → post_job.jinja
+  JobDetailView      → GET      /jobs/<id>/     → job_detail.jinja
+  JobListView        → GET      /jobs/          → browse.jinja (reuse)
+  ClientJobsView     → GET      /dashboard/jobs/→ dashboard.jinja partial
+  JobDeleteView      → DELETE   /jobs/<id>/delete/
+
+TEMPLATES:
+  pages/post_job.jinja      ← post-job.html (step 0→3 + success)
+  partials/_job_step_1.jinja
+  partials/_job_step_2.jinja
+  partials/_job_step_3.jinja
+  partials/_job_card.jinja
+  pages/job_detail.jinja    ← new
+
+HTMX:
+  hx-post="/jobs/post/step/1/"   → swap #step-content (multi-step form)
+  hx-post="/jobs/post/step/2/"   → next step
+  hx-post="/jobs/post/step/3/"   → preview
+  hx-post="/jobs/post/submit/"   → final submit → success state
+  hx-get="/jobs/?q=..."          → live search results swap
+
+FORMS:
+  JobBasicsForm / JobBudgetForm / JobPreferencesForm
+
+================================================================================
+PHASE 3 — SEARCH & DISCOVERY  (Day 6)
+================================================================================
+
+FEATURE MAP (durga.txt lines 11-15):
+  Keyword search · Filter by skill/budget · Location filter · Sort
+
+VIEWS (jobs/views.py + users/views.py):
+  BrowseFreelancersView  → GET /browse/           → browse.jinja
+  SearchResultsView      → GET /search/           → partials/_results.jinja
+  CategoryView           → GET /category/<slug>/  → browse.jinja filtered
+
+SERVICES (jobs/services.py):
+  def search_freelancers(q, category, min_rate, max_rate,
+                         min_rating, availability, sort, page):
+      qs = FreelancerProfile.objects.select_related('user')
+      # apply filters + annotate avg_rating
+      return qs
+
+TEMPLATES:
+  pages/browse.jinja           ← browse.html (filter sidebar + grid/list)
+  partials/_freelancer_card.jinja
+  partials/_freelancer_list_row.jinja
+  partials/_filter_sidebar.jinja
+
+HTMX:
+  hx-get="/browse/"
+  hx-trigger="input changed delay:400ms, change"
+  hx-target="#results"
+  hx-include="#filter-form"
+  → All filter inputs trigger live re-render of #results
+
+Alpine.js:
+  x-data="{view:'grid'}"  → toggle grid/list view
+  x-data="{open:false}"   → mobile filter drawer
+
+================================================================================
+PHASE 4 — PROPOSALS & BIDDING  (Day 7-8)
+================================================================================
+
+FEATURE MAP (durga.txt lines 16-20):
+  Send proposals/bids · Cover letter & samples · Counter-offers
+  Bid limit per day
+
+MODELS (proposals/models.py):
+  class Proposal(Model):
+      job = ForeignKey(Job)
+      freelancer = ForeignKey(User)
+      cover_letter = TextField()
+      proposed_rate = DecimalField()
+      delivery_days = IntegerField()
+      attachments = FileField()
+      status = CharField(choices=['pending','shortlisted','accepted',
+                                   'rejected','withdrawn'])
+      is_counter = BooleanField()
+      parent = ForeignKey('self', null=True)   # for counter-offers
+      created_at = DateTimeField()
+
+  class BidLimit(Model):
+      freelancer = ForeignKey(User)
+      date = DateField()
+      count = IntegerField()     # free=5/day, pro=unlimited
+
+VIEWS (proposals/views.py):
+  SendProposalView     → POST /jobs/<id>/propose/
+  ProposalListView     → GET  /dashboard/proposals/  → dashboard partial
+  ProposalDetailView   → GET  /proposals/<id>/
+  CounterOfferView     → POST /proposals/<id>/counter/
+  AcceptProposalView   → POST /proposals/<id>/accept/
+  RejectProposalView   → POST /proposals/<id>/reject/
+
+TEMPLATES:
+  partials/_proposal_form.jinja   → modal/drawer
+  partials/_proposal_card.jinja
+  partials/_proposals_list.jinja
+
+HTMX:
+  hx-post="/jobs/42/propose/"     → swap #proposal-modal with success msg
+  hx-post="/proposals/7/accept/"  → swap #proposal-7 with "Hired" state
+  hx-get="/dashboard/proposals/"  → lazy load proposals tab
+
+================================================================================
+PHASE 5 — CONTRACTS & MILESTONES  (Day 9-10)
+================================================================================
+
+FEATURE MAP (durga.txt lines 21-25):
+  Digital contract signing · Milestone-based payments
+  Deliverable tracking · Revision requests
+
+MODELS (contracts/models.py):
+  class Contract(Model):
+      job = ForeignKey(Job)
+      client = ForeignKey(User, related_name='client_contracts')
+      freelancer = ForeignKey(User, related_name='freelancer_contracts')
+      proposal = ForeignKey(Proposal)
+      total_value = DecimalField()
+      status = CharField(choices=['active','completed','disputed','cancelled'])
+      signed_by_client = BooleanField()
+      signed_by_freelancer = BooleanField()
+      signed_at = DateTimeField()
+      created_at = DateTimeField()
+
+  class Milestone(Model):
+      contract = ForeignKey(Contract)
+      title = CharField()
+      description = TextField()
+      amount = DecimalField()
+      due_date = DateField()
+      status = CharField(choices=['pending','submitted','approved','released'])
+      order = IntegerField()
+
+  class Deliverable(Model):
+      milestone = ForeignKey(Milestone)
+      file = FileField()
+      note = TextField()
+      submitted_at = DateTimeField()
+
+  class RevisionRequest(Model):
+      milestone = ForeignKey(Milestone)
+      requested_by = ForeignKey(User)
+      note = TextField()
+      created_at = DateTimeField()
+
+VIEWS (contracts/views.py):
+  ContractView          → GET  /contracts/<id>/
+  SignContractView      → POST /contracts/<id>/sign/
+  SubmitDeliverable     → POST /milestones/<id>/submit/
+  ApproveMilestone      → POST /milestones/<id>/approve/
+  RequestRevisionView   → POST /milestones/<id>/revision/
+
+TEMPLATES:
+  pages/contract.jinja
+  partials/_milestone_card.jinja
+  partials/_deliverable_upload.jinja
+
+HTMX:
+  hx-post="/contracts/5/sign/"          → swap #contract-status
+  hx-post="/milestones/3/approve/"      → swap #milestone-3 with approved state
+  hx-post="/milestones/3/submit/"       → file upload + swap
+
+================================================================================
+PHASE 6 — SECURE PAYMENTS & ESCROW  (Day 11-12)
+================================================================================
+
+FEATURE MAP (durga.txt lines 26-30):
+  Escrow/fund hold · UPI, card, net banking
+  Auto-release on approval · Dispute & refund system
+
+MODELS (payments/models.py):
+  class Wallet(Model):
+      user = OneToOneField(User)
+      balance = DecimalField()
+      escrow_balance = DecimalField()
+      updated_at = DateTimeField()
+
+  class Transaction(Model):
+      wallet = ForeignKey(Wallet)
+      type = CharField(choices=['topup','escrow','release','refund','payout'])
+      amount = DecimalField()
+      ref_id = CharField()           # Razorpay order/payment id
+      contract = ForeignKey(Contract, null=True)
+      milestone = ForeignKey(Milestone, null=True)
+      status = CharField(choices=['pending','success','failed'])
+      created_at = DateTimeField()
+
+  class Dispute(Model):
+      contract = ForeignKey(Contract)
+      raised_by = ForeignKey(User)
+      reason = TextField()
+      status = CharField(choices=['open','in_review','resolved','closed'])
+      resolution = TextField()
+      created_at = DateTimeField()
+
+SERVICES (payments/services.py):
+  def create_razorpay_order(amount, user)
+  def verify_payment(order_id, payment_id, signature)
+  def fund_escrow(wallet, contract, amount)
+  def release_milestone(milestone)           # auto-release on approval
+  def process_refund(transaction)
+  def calculate_commission(amount, user)     # 15% free / 10% pro
+
+VIEWS (payments/views.py):
+  PaymentsPageView     → GET  /payments/       → payments.jinja
+  AddFundsView         → POST /payments/add/
+  RazorpayCallbackView → POST /payments/callback/
+  ReleaseFundsView     → POST /payments/release/<milestone_id>/
+  TransactionListView  → GET  /payments/transactions/ → partial
+  DisputeView          → POST /payments/dispute/<contract_id>/
+
+TEMPLATES:
+  pages/payments.jinja            ← payments.html
+  partials/_transaction_row.jinja
+  partials/_release_modal.jinja
+  partials/_add_funds_form.jinja
+
+HTMX:
+  hx-post="/payments/add/"        → Razorpay JS opens, on success callback
+  hx-post="/payments/release/3/"  → swap #release-modal with success
+  hx-get="/payments/transactions/?type=Escrow" → live filter swap
+
+================================================================================
+PHASE 7 — MESSAGING & CHAT  (Day 13-14)
+================================================================================
+
+FEATURE MAP (durga.txt lines 31-35):
+  Real-time inbox · File & image sharing · Chat history archive
+
+MODELS (messaging/models.py):
+  class Thread(Model):
+      participants = ManyToManyField(User)
+      contract = ForeignKey(Contract, null=True)
+      created_at = DateTimeField()
+      updated_at = DateTimeField()
+
+  class Message(Model):
+      thread = ForeignKey(Thread)
+      sender = ForeignKey(User)
+      body = TextField()
+      file = FileField(null=True)
+      is_read = BooleanField()
+      created_at = DateTimeField()
+
+VIEWS (messaging/views.py):
+  InboxView          → GET  /messages/              → messages.jinja
+  ThreadView         → GET  /messages/<thread_id>/  → partial swap
+  SendMessageView    → POST /messages/<thread_id>/send/
+  MarkReadView       → POST /messages/<thread_id>/read/
+  StartThreadView    → POST /messages/start/<user_id>/
+
+TEMPLATES:
+  pages/messages.jinja              ← messages.html (3-pane layout)
+  partials/_thread_list.jinja
+  partials/_message_bubble.jinja
+  partials/_chat_window.jinja
+
+HTMX (polling for real-time):
+  hx-get="/messages/5/poll/"
+  hx-trigger="every 3s"
+  hx-target="#chat-messages"
+  hx-swap="beforeend"
+
+  hx-post="/messages/5/send/"
+  hx-target="#chat-messages"
+  hx-swap="beforeend"
+  hx-on::after-request="this.reset()"
+
+================================================================================
+PHASE 8 — REVIEWS & RATINGS  (Day 15)
+================================================================================
+
+FEATURE MAP (durga.txt lines 36-40):
+  Star rating system · Written feedback · Two-way reviews
+  Review moderation
+
+MODELS (reviews/models.py):
+  class Review(Model):
+      contract = ForeignKey(Contract)
+      reviewer = ForeignKey(User)
+      reviewee = ForeignKey(User)
+      rating = IntegerField()          # 1-5
+      feedback = TextField()
+      is_public = BooleanField()
+      is_approved = BooleanField()     # moderation
+      created_at = DateTimeField()
+
+SERVICES (reviews/services.py):
+  def get_avg_rating(user)
+  def can_review(reviewer, contract)   # both sides reviewed?
+  def flag_review(review_id, reason)   # moderation queue
+
+VIEWS:
+  LeaveReviewView    → POST /reviews/leave/<contract_id>/
+  ReviewListView     → GET  /profile/<username>/reviews/ → partial
+
+TEMPLATES:
+  partials/_review_form.jinja
+  partials/_review_card.jinja
+  partials/_star_rating.jinja   → Alpine.js interactive stars
+
+Alpine.js:
+  x-data="{rating:0,hover:0}"
+  @mouseover="hover=i" @mouseleave="hover=0" @click="rating=i"
+
+================================================================================
+PHASE 9 — NOTIFICATIONS  (Day 16)
+================================================================================
+
+FEATURE MAP (durga.txt lines 46-50):
+  Email & SMS alerts · In-app bell alerts · Custom preferences
+
+MODELS (notifications/models.py):
+  class Notification(Model):
+      user = ForeignKey(User)
+      type = CharField()      # proposal_received, payment_released, etc.
+      title = CharField()
+      body = TextField()
+      url = CharField()
+      is_read = BooleanField()
+      created_at = DateTimeField()
+
+  class NotificationPreference(Model):
+      user = OneToOneField(User)
+      email_proposals = BooleanField(default=True)
+      email_payments = BooleanField(default=True)
+      email_messages = BooleanField(default=True)
+      sms_payments = BooleanField(default=True)
+
+SERVICES (notifications/services.py):
+  def notify(user, type, title, body, url)   # creates DB + sends email
+  def send_email(user, subject, template, context)
+  def mark_all_read(user)
+
+HTMX (bell icon):
+  hx-get="/notifications/"
+  hx-trigger="click, every 30s"
+  hx-target="#notif-dropdown"
+  hx-swap="innerHTML"
+
+================================================================================
+PHASE 10 — REFERRAL & AFFILIATES  (Day 17)
+================================================================================
+
+FEATURE MAP (durga.txt lines 51-55):
+  Referral link sharing · Commission on signup
+  Affiliate dashboard · Payout tracking
+
+MODELS (referrals/models.py):
+  class Referral(Model):
+      referrer = ForeignKey(User)
+      referred = ForeignKey(User)
+      code = CharField(unique=True)
+      signup_bonus_paid = BooleanField()
+      first_job_bonus_paid = BooleanField()
+      created_at = DateTimeField()
+
+  class AffiliateEarning(Model):
+      referral = ForeignKey(Referral)
+      type = CharField(choices=['signup','first_job','commission'])
+      amount = DecimalField()
+      transaction = ForeignKey(Transaction, null=True)
+      created_at = DateTimeField()
+
+  class PayoutRequest(Model):
+      user = ForeignKey(User)
+      amount = DecimalField()
+      status = CharField(choices=['pending','processing','paid'])
+      upi_id = CharField()
+      created_at = DateTimeField()
+
+SERVICES (referrals/services.py):
+  def generate_referral_code(user)
+  def process_signup_bonus(referred_user, code)
+  def calculate_ongoing_commission(transaction)  # 2% for 12 months
+  def get_affiliate_stats(user)
+
+VIEWS:
+  ReferralPageView     → GET  /referral/         → referral.jinja
+  ReferralStatsView    → GET  /referral/stats/   → partial
+  PayoutRequestView    → POST /referral/payout/
+
+TEMPLATES:
+  pages/referral.jinja    ← referral.html
+  partials/_referral_stats.jinja
+  partials/_referral_row.jinja
+
+================================================================================
+PHASE 11 — SUBSCRIPTION & BILLING  (Day 18)
+================================================================================
+
+FEATURE MAP (durga.txt lines 56-60):
+  Free & premium tiers · Featured listings · Boosted proposals
+  Monthly/yearly billing
+
+MODELS (billing/models.py):
+  class Plan(Model):
+      name = CharField()            # Free / Pro / Enterprise
+      price_monthly = DecimalField()
+      price_yearly = DecimalField()
+      max_jobs_per_month = IntegerField()   # 0 = unlimited
+      commission_rate = DecimalField()      # 15% free, 10% pro
+      boosted_proposals = IntegerField()
+      is_featured = BooleanField()
+
+  class Subscription(Model):
+      user = OneToOneField(User)
+      plan = ForeignKey(Plan)
+      billing_cycle = CharField(choices=['monthly','yearly'])
+      status = CharField(choices=['active','cancelled','expired'])
+      current_period_end = DateTimeField()
+      razorpay_sub_id = CharField()
+
+SERVICES (billing/services.py):
+  def create_subscription(user, plan, cycle)
+  def cancel_subscription(user)
+  def check_feature_access(user, feature)  # gating
+  def apply_featured_boost(job)
+
+VIEWS:
+  PricingPageView    → GET  /pricing/          → pricing.jinja
+  CheckoutView       → POST /billing/checkout/
+  BillingPortalView  → GET  /billing/manage/
+
+TEMPLATES:
+  pages/pricing.jinja     ← pricing.html
+  partials/_plan_card.jinja
+
+================================================================================
+PHASE 12 — ADMIN DASHBOARD  (Day 19-20)
+================================================================================
+
+FEATURE MAP (durga.txt lines 41-45):
+  User & job management · Commission settings
+  Reports & analytics · Content moderation
+
+Django Admin (/sd/) — DjangoTemplates:
+  UserAdmin         → list, filter, ban, verify badge
+  JobAdmin          → list, moderate, feature
+  ReviewAdmin       → moderate, approve/reject
+  DisputeAdmin      → review, resolve
+  CommissionAdmin   → set rates per plan
+  SubscriptionAdmin → manage plans
+
+Custom Admin Views:
+  AdminDashboardView  → GET /sd/analytics/
+    - Revenue today/week/month
+    - Active users count
+    - Jobs posted / completed
+    - Top freelancers / clients
+
+================================================================================
+PHASE 13 — POLISH & PRODUCTION PREP  (Day 21)
+================================================================================
+
+  [x] Move SQLite → PostgreSQL (dj-database-url)
+  [x] Redis + Celery for: email, SMS, notification dispatch
+  [x] WhiteNoise for static files
+  [x] django-storages (S3/R2) for media
+  [x] .env production variables
+  [x] Gunicorn + Nginx config
+  [x] Docker + docker-compose.yml
+  [x] SECURE_SSL_REDIRECT, HSTS, CSRF settings
+  [x] Sentry error tracking
+  [x] Final QA pass all 10 pages
+
+================================================================================
+PHASE 14 — LAUNCH & REVENUE OPS  (Week 4)
+================================================================================
+
+GOAL: Ship to production, activate monetization, and track revenue KPIs.
+
+  [x] Production deploy runbook
+      - Finalize env vars on server
+      - Run migrations + collectstatic
+      - Health-check endpoints and rollback checklist
+
+  [ ] Payments go-live hardening
+      - Razorpay production keys + webhook signature verification
+      - Add payment failure retry UX and admin alerting
+      - Validate escrow release and refund scenarios
+
+  [ ] Subscription monetization activation
+      - Seed Free/Pro/Enterprise plans in prod
+      - Enforce feature gating in proposal/job limits
+      - Track conversion events (pricing view → checkout → active subscription)
+
+  [ ] Revenue analytics v1
+      - Daily GMV, net revenue, take-rate, active subscriptions
+      - Top client/freelancer revenue contributors
+      - Add /sd/analytics filters (today/7d/30d)
+
+  [ ] Growth loops
+      - Referral sharing CTA improvements on dashboard + payments
+      - First-job incentive banner for referred users
+      - Lifecycle emails (signup, first job posted, first payout)
+
+  [ ] QA + UAT sign-off
+      - Browser QA checklist on all 10 pages
+      - Test user journeys (client + freelancer + admin)
+      - Fix launch blockers before release tag
+
+DONE CRITERIA:
+  - App deployed on production domain with HTTPS
+  - At least one real subscription and one real payment captured
+  - Admin dashboard shows revenue KPIs for live data
+  - UAT sign-off from client, freelancer, and admin flows
+
+================================================================================
+APP STRUCTURE
+================================================================================
+
+sd-suratpro/
+├── manage.py
+├── durga.py
+├── requirements.txt
+├── dev_plan.txt
+├── dev.md                 ← feature-wise status & steps (maintained alongside dev.txt)
+├── dev.txt
+├── test_user.txt
+├── .env
+├── core/
+│   ├── settings.py
+│   ├── urls.py
+│   ├── jinja2.py
+│   └── wsgi.py
+├── users/
+├── jobs/
+├── proposals/
+├── contracts/
+├── payments/
+├── messaging/
+├── reviews/
+├── notifications/
+├── referrals/
+├── billing/
+├── templates/
+│   ├── base.jinja
+│   ├── layouts/
+│   │   ├── main.jinja
+│   │   └── dashboard.jinja
+│   ├── components/
+│   │   ├── nav.jinja
+│   │   ├── footer.jinja
+│   │   ├── card.jinja
+│   │   └── button.jinja
+│   ├── partials/
+│   │   ├── _freelancer_card.jinja
+│   │   ├── _job_card.jinja
+│   │   ├── _proposal_card.jinja
+│   │   ├── _milestone_card.jinja
+│   │   ├── _message_bubble.jinja
+│   │   ├── _review_card.jinja
+│   │   ├── _transaction_row.jinja
+│   │   └── _notification_item.jinja
+│   └── pages/
+│       ├── home.jinja         ← index.html
+│       ├── browse.jinja       ← browse.html
+│       ├── profile.jinja      ← profile.html
+│       ├── post_job.jinja     ← post-job.html
+│       ├── dashboard.jinja    ← dashboard.html
+│       ├── messages.jinja     ← messages.html
+│       ├── payments.jinja     ← payments.html
+│       ├── pricing.jinja      ← pricing.html
+│       ├── referral.jinja     ← referral.html
+│       └── auth/
+│           ├── login.jinja    ← login.html
+│           └── register.jinja
+└── static/
+    ├── css/style.css
+    └── js/app.js
+
+================================================================================
+EXECUTION ORDER PER PHASE (each phase)
+================================================================================
+
+  1. Models → 2. Migrations → 3. Services → 4. Forms
+  5. Views  → 6. URLs       → 7. Templates → 8. HTMX wiring
+
+================================================================================
+PHASE TIMELINE SUMMARY
+================================================================================
+
+  Phase 0  → Day 1        Project setup
+  Phase 1  → Day 2-3      Auth & User Profiles     → login.html + profile.html
+  Phase 2  → Day 4-5      Job Posting              → post-job.html
+  Phase 3  → Day 6        Search & Discovery       → browse.html
+  Phase 4  → Day 7-8      Proposals & Bidding      → dashboard.html partial
+  Phase 5  → Day 9-10     Contracts & Milestones   → dashboard.html partial
+  Phase 6  → Day 11-12    Payments & Escrow        → payments.html
+  Phase 7  → Day 13-14    Messaging & Chat         → messages.html
+  Phase 8  → Day 15       Reviews & Ratings        → profile.html partial
+  Phase 9  → Day 16       Notifications            → all pages bell icon
+  Phase 10 → Day 17       Referral & Affiliates    → referral.html
+  Phase 11 → Day 18       Subscription & Billing   → pricing.html
+  Phase 12 → Day 19-20    Admin Dashboard          → /sd/ custom
+  Phase 13 → Day 21       Polish & Production      → deploy ready
+
+  TOTAL: 21 DAYS → FULL MVP LAUNCH READY
+
+================================================================================
+TECH STACK (DEVELOPMENT)
+================================================================================
+
+  Backend:    Python 3.12 · Django 5
+  Templates:  Jinja2 (all pages) · DjangoTemplates (admin only)
+  Frontend:   HTMX (server interactions) · Alpine.js (UI toggles)
+  CSS:        Tailwind CSS CDN (dev) → compiled (prod)
+  DB:         SQLite (dev) → PostgreSQL (prod)
+  Cache:      Redis (sessions + cache)
+  Queue:      Celery (email, SMS, notifications)
+  Payments:   Razorpay (UPI + card + netbanking + escrow)
+  Storage:    WhiteNoise (dev) → S3/R2 (prod)
+  Admin:      /sd/ (Django admin, DjangoTemplates)
+
+================================================================================
+THEME CONSTANTS (keep across all Jinja2 templates)
+================================================================================
+
+  --gold: #E8A830         Primary CTA, accents
+  --teal: #0D6E6E         Secondary, nav highlight
+  --dark: #080F0F         Page background
+  --dark2: #0D1A1A        Cards background
+  --mid: #142323          Section background
+  --text-muted: #7AABAB   Body text
+  --green: #3ECA8F        Success, online status
+  --saffron: #E85D04      Alerts, notifications
+
+  Fonts: Playfair Display (headings) · DM Sans (body) · Space Mono (mono)
+
+================================================================================

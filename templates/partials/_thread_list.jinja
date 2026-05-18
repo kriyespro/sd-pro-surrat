@@ -1,0 +1,7 @@
+{% for thread in threads %}
+  <a href="#" class="block sp-card p-3 mb-2">
+    Thread #{{ thread.id }}
+  </a>
+{% else %}
+  <p class="text-[var(--text-muted)]">No message threads yet.</p>
+{% endfor %}

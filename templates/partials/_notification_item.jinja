@@ -1,0 +1,8 @@
+{% for n in notifications %}
+  <article class="sp-card p-3 mb-2">
+    <h4 class="font-semibold text-sm">{{ n.title }}</h4>
+    <p class="text-xs text-[var(--text-muted)] mt-1">{{ n.body }}</p>
+  </article>
+{% else %}
+  <p class="text-[var(--text-muted)]">No notifications.</p>
+{% endfor %}

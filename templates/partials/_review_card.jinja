@@ -1,0 +1,8 @@
+{% for review in reviews %}
+  <article class="sp-card p-4 mb-3">
+    <p class="font-semibold">★ {{ review.rating }}/5</p>
+    <p class="text-sm mt-1 text-[var(--text-muted)]">{{ review.feedback }}</p>
+  </article>
+{% else %}
+  <p class="text-[var(--text-muted)]">No reviews yet.</p>
+{% endfor %}

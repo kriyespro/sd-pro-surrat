@@ -1,0 +1,161 @@
+{% extends 'base.jinja' %}
+{% block title %}Contracts — SuratPro{% endblock %}
+
+{% block extra_head %}
+<style>
+.ct-wrap { max-width: 860px; margin: 0 auto; padding: 2.5rem 4%; }
+.ct-back { font-size: 0.82rem; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1.5rem; }
+.ct-back:hover { color: var(--gold); }
+.ct-card { background: var(--mid); border: 1px solid var(--border); border-radius: 18px; padding: 1.8rem 2rem; margin-bottom: 1.5rem; }
+.ct-title { font-family:'Playfair Display',serif; font-size: 1.4rem; font-weight: 900; color: var(--white); margin-bottom: 0.5rem; }
+.ct-meta { display: flex; gap: 1.2rem; flex-wrap: wrap; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.2rem; }
+.ct-meta strong { color: var(--white); }
+.ct-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+.ct-sign-strip { background: var(--dark); border: 1px solid var(--border-gold); border-radius: 10px; padding: 0.8rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+.ct-sign-strip p { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+
+/* Milestones */
+.ms-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; }
+.ms-section-head h3 { font-family:'Playfair Display',serif; font-size: 1.1rem; font-weight: 700; color: var(--white); }
+.ms-card { background: var(--dark); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.3rem; margin-bottom: 0.8rem; }
+.ms-head { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; flex-wrap: wrap; }
+.ms-title { font-weight: 600; font-size: 0.95rem; color: var(--white); }
+.ms-meta { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem; }
+.ms-desc { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.5; }
+.ms-actions { display: flex; gap: 0.5rem; margin-top: 0.8rem; flex-wrap: wrap; }
+
+/* Add milestone form */
+.ms-add-form { background: var(--dark); border: 1px dashed var(--border-gold); border-radius: 12px; padding: 1.2rem 1.4rem; margin-top: 1rem; }
+.ms-add-form h4 { font-size: 0.88rem; font-weight: 700; color: var(--gold); margin-bottom: 1rem; }
+.ms-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+.ms-input { width: 100%; padding: 0.6rem 0.9rem; background: var(--mid); border: 1px solid var(--border); border-radius: 8px; color: var(--white); font-size: 0.84rem; outline: none; box-sizing: border-box; }
+.ms-input:focus { border-color: var(--gold); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ct-wrap">
+  <a href="/dashboard/?page=contracts" class="ct-back">← Back to dashboard</a>
+
+  {% if not contracts %}
+    <p style="color:var(--text-muted)">No contracts found.</p>
+  {% endif %}
+
+  {% for contract in contracts %}
+  <div class="ct-card" x-data="{ showAddMs: false }">
+    <div class="ct-title">{{ contract.job.title }}</div>
+    <div class="ct-meta">
+      <span>Client: <strong>{{ contract.client.get_full_name() or contract.client.username }}</strong></span>
+      <span>Freelancer: <strong>{{ contract.freelancer.get_full_name() or contract.freelancer.username }}</strong></span>
+      <span>Value: <strong style="color:var(--gold);font-family:'Space Mono',monospace">₹{{ contract.total_value }}</strong></span>
+      <span>Created: <strong>{{ contract.created_at.strftime('%d %b %Y') }}</strong></span>
+    </div>
+    <div class="ct-badges">
+      {% if contract.status == 'active' %}
+        <span class="sp-badge sp-badge-green">Active</span>
+      {% elif contract.status == 'completed' %}
+        <span class="sp-badge sp-badge-gold">Completed</span>
+      {% elif contract.status == 'disputed' %}
+        <span class="sp-badge sp-badge-red">Disputed</span>
+      {% else %}
+        <span class="sp-badge">{{ contract.status|title }}</span>
+      {% endif %}
+      {% if contract.signed_by_client %}<span class="sp-badge sp-badge-green">Client signed</span>{% endif %}
+      {% if contract.signed_by_freelancer %}<span class="sp-badge sp-badge-green">Freelancer signed</span>{% endif %}
+    </div>
+
+    {% if not contract.signed_by_client or not contract.signed_by_freelancer %}
+    <div class="ct-sign-strip">
+      <p>
+        {% if not contract.signed_by_client and request.user == contract.client %}Awaiting your signature as client.
+        {% elif not contract.signed_by_freelancer and request.user == contract.freelancer %}Awaiting your signature as freelancer.
+        {% else %}Waiting for the other party to sign.{% endif %}
+      </p>
+      {% if (not contract.signed_by_client and request.user == contract.client) or (not contract.signed_by_freelancer and request.user == contract.freelancer) %}
+      <form hx-post="{{ url('sign_contract', contract_id=contract.id) }}"
+            hx-target="closest .ct-card" hx-swap="outerHTML"
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' style="display:inline">
+        <button type="submit" class="sp-btn-gold" style="padding:0.5rem 1.1rem;font-size:0.82rem">Sign contract</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- MILESTONES -->
+    <div style="margin-top:1.6rem">
+      <div class="ms-section-head">
+        <h3>Milestones ({{ contract.milestones.count() }})</h3>
+        {% if request.user == contract.client %}
+        <button type="button" class="btn-sm" style="background:var(--gold-dim);border:1px solid var(--border-gold);color:var(--gold)"
+                @click="showAddMs=!showAddMs">
+          <span x-text="showAddMs ? '− Cancel' : '+ Add milestone'"></span>
+        </button>
+        {% endif %}
+      </div>
+
+      <div id="milestones-{{ contract.id }}">
+        {% for m in contract.milestones.all() %}
+        <div class="ms-card" id="ms-{{ m.id }}">
+          <div class="ms-head">
+            <span class="ms-title">{{ m.title }}</span>
+            {% if m.status == 'pending' %}<span class="sp-badge sp-badge-gold">Pending</span>
+            {% elif m.status == 'submitted' %}<span class="sp-badge" style="background:#1e3a5f;color:#60a5fa;border:1px solid #3b82f6">Submitted</span>
+            {% elif m.status == 'approved' %}<span class="sp-badge sp-badge-green">Approved</span>
+            {% elif m.status == 'released' %}<span class="sp-badge sp-badge-green">Released ✓</span>
+            {% endif %}
+          </div>
+          <div class="ms-meta">₹{{ m.amount }} · Due {{ m.due_date or 'TBD' }}{% if m.description %} · {{ m.description[:80] }}{% endif %}</div>
+          <div class="ms-actions" id="ms-actions-{{ m.id }}">
+            {% if m.status == 'pending' and request.user == contract.freelancer %}
+            <form hx-post="{{ url('submit_milestone', milestone_id=m.id) }}"
+                  hx-target="#ms-actions-{{ m.id }}" hx-swap="innerHTML"
+                  hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' style="display:inline">
+              <button type="submit" class="btn-sm" style="background:var(--gold);color:var(--dark);border:none">Submit deliverable</button>
+            </form>
+            {% elif m.status == 'submitted' and request.user == contract.client %}
+            <form hx-post="{{ url('approve_milestone', milestone_id=m.id) }}"
+                  hx-target="#ms-actions-{{ m.id }}" hx-swap="innerHTML"
+                  hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' style="display:inline">
+              <button type="submit" class="btn-sm" style="background:var(--green);color:var(--dark);border:none">Approve</button>
+            </form>
+            <form hx-post="{{ url('revision_request', milestone_id=m.id) }}"
+                  hx-target="#ms-actions-{{ m.id }}" hx-swap="innerHTML"
+                  hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' style="display:inline">
+              <button type="submit" class="btn-sm" style="background:transparent;border:1px solid var(--border-strong);color:var(--text-muted)">Request revision</button>
+            </form>
+            {% elif m.status in ('approved', 'released') %}
+            <span style="font-size:0.78rem;color:var(--text-muted)">✓ Complete</span>
+            {% endif %}
+          </div>
+        </div>
+        {% else %}
+        <p style="font-size:0.85rem;color:var(--text-muted);padding:0.8rem 0">No milestones yet.{% if request.user == contract.client %} Add one to track deliverables.{% endif %}</p>
+        {% endfor %}
+      </div>
+
+      {% if request.user == contract.client %}
+      <div x-show="showAddMs" x-cloak class="ms-add-form" id="add-ms-form-{{ contract.id }}">
+        <h4>+ New milestone</h4>
+        <form hx-post="{{ url('add_milestone', contract_id=contract.id) }}"
+              hx-target="#milestones-{{ contract.id }}"
+              hx-swap="beforeend"
+              hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+              @htmx:after-request="showAddMs=false">
+          <div class="ms-form-grid">
+            <input type="text" name="title" placeholder="Milestone title *" class="ms-input" required>
+            <input type="number" name="amount" placeholder="Amount (₹)" class="ms-input" min="0">
+            <input type="date" name="due_date" class="ms-input">
+            <input type="text" name="description" placeholder="Short description (optional)" class="ms-input">
+          </div>
+          <div style="margin-top:0.8rem;display:flex;gap:0.6rem">
+            <button type="submit" class="sp-btn-gold" style="padding:0.5rem 1.2rem;font-size:0.82rem">Add milestone</button>
+            <button type="button" @click="showAddMs=false" class="btn-sm" style="background:transparent;border:1px solid var(--border-strong);color:var(--text-muted)">Cancel</button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

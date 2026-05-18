@@ -1,0 +1,322 @@
+================================================================================
+  SURATPRO — DEVELOPMENT STATUS LOG
+  Last Updated: 9 May 2026 (feature/status rollup → see dev.md)
+  Stack: Django 5 · Jinja2 · HTMX · Alpine.js · Tailwind CSS CDN · SQLite
+================================================================================
+
+  📌 Feature-wise plan + current status: dev.md (single rollup by feature area)
+
+SERVER STATUS: ✅ RUNNING at http://127.0.0.1:8000/
+DJANGO CHECK:  ✅ 0 issues
+DB:            ✅ SQLite (db.sqlite3) — migrations applied
+ADMIN:         ✅ http://127.0.0.1:8000/sd/  (admin / admin1234)
+
+================================================================================
+PHASE 0 — PROJECT SETUP                                          ✅ COMPLETE
+================================================================================
+Date Completed: 26 April 2026
+
+  [x] Virtual environment created (venv/)
+  [x] Django 5.0.6 installed
+  [x] Packages: jinja2, django-jinja, whitenoise, pillow, python-decouple, razorpay
+  [x] django-admin startproject core .
+  [x] 10 apps created:
+        users/ jobs/ proposals/ contracts/ payments/
+        messaging/ reviews/ notifications/ referrals/ billing/
+  [x] core/settings.py configured
+        - AUTH_USER_MODEL = 'users.User'
+        - TEMPLATES: Jinja2 (primary) + DjangoTemplates (admin only)
+        - Context processors for Jinja2 (request, auth, csrf, messages)
+        - Whitenoise for static files
+        - STATIC_URL, MEDIA_URL, STATIC_ROOT
+  [x] core/jinja2.py — custom Jinja2 environment (static, url globals)
+  [x] core/urls.py — root URL conf (all 10 apps included)
+  [x] Stub urls.py created for all 9 non-users apps
+  [x] .env file configured (SECRET_KEY, DEBUG, ALLOWED_HOSTS)
+  [x] durga.py — dev runner (clears .pyc + runs server)
+  [x] requirements.txt
+  [x] test_user.txt (admin + test credentials)
+  [x] templates/ directory structure created:
+        templates/base.jinja
+        templates/components/nav.jinja
+        templates/components/footer.jinja
+        templates/pages/home.jinja
+        templates/pages/auth/login.jinja
+        templates/layouts/  (ready for dashboard layout)
+        templates/partials/ (ready for HTMX partials)
+  [x] static/css/style.css — full design system
+        (gold/teal/dark theme, sp-btn-*, sp-card, sp-field, sp-badge, sp-toast)
+  [x] Initial migrations applied (auth, sessions, contenttypes)
+  [x] Superuser created (admin / admin1234)
+
+FILES CREATED:
+  manage.py / durga.py / requirements.txt / .env / test_user.txt
+  core/settings.py / core/urls.py / core/jinja2.py / core/wsgi.py
+  templates/base.jinja
+  templates/components/nav.jinja + footer.jinja
+  templates/pages/home.jinja
+  templates/pages/auth/login.jinja
+  static/css/style.css
+
+================================================================================
+PHASE 1 — AUTH & USER PROFILES                                   ✅ COMPLETE
+================================================================================
+Date Completed: 26 April 2026
+
+MODELS (users/models.py):
+  [x] User (AbstractUser)
+        - role: client / freelancer
+        - phone, avatar, city, bio
+        - is_verified, referral_code (auto-generated UUID)
+        - initials property, is_freelancer, is_client properties
+  [x] Category (name, icon, slug, order)
+  [x] Skill (name, category FK)
+  [x] FreelancerProfile (OneToOne → User)
+        - title, skills M2M, hourly_rate, min_project
+        - availability, response_time, experience_years
+        - portfolio_url, linkedin
+        - jobs_completed, success_rate, avg_rating, total_reviews
+  [x] PortfolioItem (freelancer FK, title, description, image, url, tags M2M)
+  [x] Certification (freelancer FK, title, issuer, year)
+
+MIGRATIONS:
+  [x] users/migrations/0001_initial.py — applied ✅
+
+FORMS (users/forms.py):
+  [x] RegisterForm (role, first_name, last_name, username, email, phone, passwords)
+  [x] LoginForm (AuthenticationForm)
+  [x] FreelancerProfileForm (title, rates, availability, experience)
+  [x] UserProfileForm (first_name, last_name, phone, city, bio, avatar)
+
+VIEWS (users/views.py):
+  [x] home()              → GET /           → pages/home.jinja
+  [x] login_view()        → GET/POST /auth/login/
+  [x] register_view()     → GET/POST /auth/register/
+  [x] logout_view()       → POST /auth/logout/
+  [x] profile_view()      → GET /profile/<username>/
+  [x] dashboard()         → GET /dashboard/ (login_required)
+  [x] profile_edit()      → GET/POST /dashboard/profile/edit/
+
+URLS (users/urls.py):
+  [x] / → home
+  [x] /auth/login/ → login_view
+  [x] /auth/register/ → register_view
+  [x] /auth/logout/ → logout_view
+  [x] /profile/<username>/ → profile_view
+  [x] /dashboard/ → dashboard
+  [x] /dashboard/profile/edit/ → profile_edit
+
+ADMIN (users/admin.py):
+  [x] UserAdmin (list: username, email, role, is_verified, created_at)
+  [x] FreelancerProfileAdmin (list: user, title, hourly_rate, availability)
+  [x] CategoryAdmin (with slug prepopulation)
+  [x] SkillAdmin, PortfolioItem, Certification registered
+
+TEMPLATES:
+  [x] pages/auth/login.jinja
+        - Tab switch: Login ↔ Register (Alpine.js)
+        - Role cards: Client / Freelancer
+        - HTMX form submission (hx-post → swap errors inline)
+        - CSRF token (csrfmiddlewaretoken hidden input)
+  [x] pages/home.jinja
+        - Hero section with CTA buttons
+        - Stats strip (500+ freelancers, ₹2Cr+, 4.9★)
+        - Category grid (8 categories)
+  [x] components/nav.jinja
+        - Auth-aware (shows Dashboard+Logout if logged in, else Login+Register)
+        - Shows user initials avatar
+  [x] components/footer.jinja
+
+HTMX:
+  [x] Login form → hx-post /auth/login/ → inline error swap
+  [x] Register form → hx-post /auth/register/ → inline error swap
+
+LIVE ROUTES (HTTP status):
+  ✅ GET /               → 200
+  ✅ GET /auth/login/    → 200
+  ✅ GET /sd/            → 302 (admin login redirect = correct)
+  ✅ GET /dashboard/     → 302 (to login = correct, login_required)
+
+================================================================================
+PHASE 2 — JOB & GIG POSTING                                 ✅ MVP COMPLETE
+================================================================================
+
+DONE:
+  [x] Job model, migrations, forms, services, views, urls, and admin wired
+  [x] `post_job.jinja`, `job_detail.jinja`, `_job_card.jinja`, `_job_step_*.jinja` completed
+  [x] Multi-step posting flow and browse/job routes integrated for MVP
+
+================================================================================
+PHASE 3 — SEARCH & DISCOVERY                                 ✅ MVP COMPLETE
+================================================================================
+
+DONE:
+  [x] Freelancer discovery/search service and filtered browse endpoints implemented
+  [x] `browse.jinja`, `_freelancer_card.jinja`, `_filter_sidebar.jinja` completed
+  [x] HTMX + Alpine based live filtering wired for MVP experience
+
+================================================================================
+PHASE 4 — PROPOSALS & BIDDING                                ✅ MVP COMPLETE
+================================================================================
+
+DONE:
+  [x] Proposal/BidLimit models, forms, services, urls, and core proposal workflows added
+  [x] Accept/reject/counter and proposal list/detail routes implemented
+  [x] `_proposal_form.jinja` and `_proposal_card.jinja` integrated
+
+================================================================================
+PHASE 5 — CONTRACTS & MILESTONES                             ✅ MVP COMPLETE
+================================================================================
+
+DONE:
+  [x] Contract/milestone/deliverable/revision models and migrations implemented
+  [x] Contract sign/submit/approve/revision workflows + urls implemented
+  [x] `contract.jinja` and `_milestone_card.jinja` completed
+
+================================================================================
+PHASE 6 — SECURE PAYMENTS & ESCROW                           ✅ MVP COMPLETE
+================================================================================
+
+DONE:
+  [x] Wallet/transaction/dispute models, services, views, urls added
+  [x] Escrow/release/payment flow scaffolded with Razorpay-ready hooks
+  [x] `payments.jinja`, `_transaction_row.jinja`, and `_release_modal.jinja` completed
+
+================================================================================
+PHASE 7 — MESSAGING & CHAT                                   ✅ MVP COMPLETE
+================================================================================
+
+DONE:
+  [x] Thread/message models, migrations, inbox/thread/send/read/start views + urls implemented
+  [x] `messages.jinja`, `_thread_list.jinja`, `_message_bubble.jinja` completed
+  [x] HTMX polling and MVP real-time chat behavior wired
+
+================================================================================
+PHASE 8 — REVIEWS & RATINGS                                  ✅ MVP COMPLETE
+================================================================================
+
+DONE:
+  [x] Review model/migrations, services, views, and urls implemented
+  [x] Two-way review flow and moderation-ready fields added
+  [x] `_review_form.jinja`, `_review_card.jinja`, `_star_rating.jinja` integrated
+
+================================================================================
+PHASE 9 — NOTIFICATIONS                                      ✅ MVP COMPLETE
+================================================================================
+
+DONE:
+  [x] Notification and preference models/migrations/services/views/urls implemented
+  [x] `_notification_item.jinja` and bell dropdown flow integrated
+  [x] HTMX periodic notification refresh added
+
+================================================================================
+PHASE 10 — REFERRAL & AFFILIATES                             ✅ MVP COMPLETE
+================================================================================
+
+DONE:
+  [x] Referral/earning/payout models, migrations, services, views, urls implemented
+  [x] `referral.jinja` + `_referral_row.jinja` fully data-driven
+  [x] Referral stats and payout request workflow active
+
+================================================================================
+PHASE 11 — SUBSCRIPTION & BILLING                            ✅ MVP COMPLETE
+================================================================================
+
+DONE:
+  [x] Plan/subscription models, migrations, services, views, and urls implemented
+  [x] Pricing and billing routes wired for MVP
+  [x] `pricing.jinja` and `_plan_card.jinja` completed
+
+================================================================================
+PHASE 12 — ADMIN DASHBOARD                                   ✅ COMPLETE
+================================================================================
+
+DONE:
+  [x] Custom admin analytics view at /sd/analytics/ (staff-only)
+  [x] Revenue split added (today / 7 days / 30 days), users, jobs metrics
+  [x] Top freelancers and top clients leaderboard added
+  [x] Active users (30d), active subscriptions, disputed contracts metrics added
+  [x] Content moderation queues rendered (jobs + pending reviews)
+  [x] Admin moderation actions added (review approve/unapprove, dispute resolve, job feature)
+  [x] Commission settings editable in Plan admin (`commission_rate` list-editable)
+
+================================================================================
+PHASE 13 — PRODUCTION PREP                                 ✅ MVP COMPLETE
+================================================================================
+
+DONE:
+  [x] PostgreSQL-ready database config via `DATABASE_URL` + `dj-database-url`
+  [x] Redis/Celery baseline config + `core/celery.py`
+  [x] django-storages/S3 env variables scaffolded
+  [x] Docker + `docker-compose.yml`
+  [x] Gunicorn config + Nginx reverse proxy config
+  [x] `.env.example` production variables completed
+  [x] `SECURE_SSL_REDIRECT`, HSTS, CSRF/session secure cookie settings
+  [x] Sentry DSN integration (env-driven, optional import)
+
+================================================================================
+PHASE 14 — LAUNCH & REVENUE OPS                                  ✅ MVP COMPLETE
+================================================================================
+Date Completed: 15 May 2026
+
+DONE:
+  [x] Production deploy runbook (migrate, collectstatic, health checks, rollback)
+  [x] Automated endpoint regression tests (users/tests.py + proposals/tests.py) — 13 tests ✅
+  [x] Release preflight script (scripts/release_check.sh) — fixed ALLOWED_HOSTS bug
+  [x] Subscription plans seeded: Free (₹0) / Pro (₹999/mo) / Business (₹2499/mo)
+  [x] Plan model: added is_active field + migration 0002_add_plan_is_active
+  [x] billing/management/commands/seed_plans.py — idempotent plan seeding command
+  [x] Dockerfile fixed — entrypoint.sh handles migrate + collectstatic + seed_plans
+  [x] .env.example — complete SMTP, Razorpay, Sentry, S3 variables documented
+  [x] billing views: filter plans by is_active=True
+
+REMAINING (post-launch iteration):
+  [ ] Razorpay live keys (swap in .env — RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET)
+  [ ] Email SMTP backend (set EMAIL_HOST + EMAIL_HOST_PASSWORD in .env)
+  [ ] Feature gating by plan (enforce max_jobs_per_month, boosted_proposals)
+  [ ] Revenue analytics v1 (GMV, net revenue, take-rate)
+  [ ] Full UAT sign-off (scripted client + freelancer + admin journeys)
+
+================================================================================
+OVERALL PROGRESS
+================================================================================
+
+  Phase  0  — Project Setup          ✅ COMPLETE   (26 Apr 2026)
+  Phase  1  — Auth & User Profiles   ✅ COMPLETE   (26 Apr 2026)
+  Phase  2  — Job Posting            ✅ MVP COMPLETE
+  Phase  3  — Search & Discovery     ✅ MVP COMPLETE
+  Phase  4  — Proposals & Bidding    ✅ MVP COMPLETE
+  Phase  5  — Contracts & Milestones ✅ MVP COMPLETE
+  Phase  6  — Payments & Escrow      ✅ MVP COMPLETE
+  Phase  7  — Messaging & Chat       ✅ MVP COMPLETE
+  Phase  8  — Reviews & Ratings      ✅ MVP COMPLETE
+  Phase  9  — Notifications          ✅ MVP COMPLETE
+  Phase 10  — Referral & Affiliates  ✅ MVP COMPLETE
+  Phase 11  — Subscription & Billing ✅ MVP COMPLETE
+  Phase 12  — Admin Dashboard        ✅ COMPLETE
+  Phase 13  — Production Prep        ✅ MVP COMPLETE
+  Phase 14  — Launch & Revenue Ops   ✅ MVP COMPLETE   (15 May 2026)
+
+  COMPLETED: 15 / 15 phases
+  PROGRESS:  ██████████████  100% MVP
+
+================================================================================
+KNOWN ISSUES / NOTES
+================================================================================
+
+  - Auth pages now use Django forms + HTMX partial swaps (_login_form/_register_form)
+  - profile_edit.jinja created and connected to users.profile_edit view
+  - layouts/main.jinja and layouts/dashboard.jinja added for upcoming refactors
+  - HTMX post login redirect uses <script> tag workaround (acceptable for MVP)
+  - django-jinja installed but using native Django Jinja2 backend (correct)
+  - No email backend configured yet (will use console backend in dev)
+
+RECENT PROGRESS (May 2026) — also summarized in dev.md
+  [x] Dashboard: role-aware UI + real DB-backed lists/stats (users/services.py)
+  [x] Proposals: job-owner-only accept/reject/counter; scoped proposal_detail (403)
+  [x] proposals/dashboard list + dashboard_proposals split by client vs freelancer
+  [x] Jinja url(): keyword args → reverse(kwargs=…) (core/jinja2.py)
+  [x] Messaging: messages/start/<user_id>/ redirects to /messages/ after thread ready
+  [x] Tests: dashboard tab smoke (users/tests.py) + proposal RBAC (proposals/tests.py)
+
+================================================================================

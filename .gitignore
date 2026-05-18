@@ -1,0 +1,13 @@
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+db.sqlite3
+staticfiles/
+media/
+.env
+.env.prod
+*.log
+.DS_Store
+plan/
+folder plan/

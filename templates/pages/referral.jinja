@@ -1,0 +1,189 @@
+{% extends 'base.jinja' %}
+{% block title %}Refer & Earn{% endblock %}
+{% block meta_desc %}Refer friends and earn on SuratPro{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block nav %}
+  {% include 'components/nav.jinja' %}
+{% endblock %}
+
+{% block content %}
+<div class="referral-page" x-data="referralApp()">
+<!-- HERO -->
+<section style="padding:4rem 5% 3rem;text-align:center;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--dark) 0%,var(--mid) 100%)">
+  <div class="referral-hero-glow" style="position:absolute;inset:0;pointer-events:none"></div>
+  <div style="position:relative;z-index:1">
+    <span style="font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold)">// Earn Together</span>
+    <h1 style="font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3.2rem);font-weight:900;line-height:1.1;letter-spacing:-1px;margin:0.8rem 0 1rem">
+      Invite Friends.<br><em style="color:var(--gold);font-style:italic">Earn Real Money.</em>
+    </h1>
+    <p style="color:var(--text-muted);font-size:0.95rem;max-width:500px;margin:0 auto 2rem;line-height:1.72">Share SuratPro with friends & businesses. Earn ₹500 per successful signup + ongoing commission on every job they complete.</p>
+
+    <!-- Referral link box -->
+    <div style="max-width:520px;margin:0 auto">
+      <div class="copy-field">
+        <input type="text" readonly :value="refLink" id="refInput">
+        <button @click="copyLink()"><span x-text="copied?'✓ Copied!':'📋 Copy'"></span></button>
+      </div>
+      <div style="display:flex;gap:0.7rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
+        <button class="btn-gold" style="font-size:0.82rem;padding:0.65rem 1.2rem" @click="share('whatsapp')">💬 Share on WhatsApp</button>
+        <button @click="share('copy')" style="padding:0.65rem 1.2rem;border:1.5px solid var(--border-gold);color:var(--gold);background:transparent;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s">🔗 Share Link</button>
+        <button @click="share('instagram')" style="padding:0.65rem 1.2rem;border:1.5px solid var(--border);color:var(--text-muted);background:transparent;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s">📸 Instagram</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div style="max-width:1100px;margin:0 auto;padding:2rem 5% 4rem">
+
+  <!-- Earnings stats -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem">
+    <div class="stat-card">
+      <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.6rem">Total Earned</div>
+      <div style="font-family:'Space Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--gold)">₹{{ total_earned }}</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem">Lifetime earnings</div>
+    </div>
+    <div class="stat-card">
+      <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.6rem">Pending Payout</div>
+      <div style="font-family:'Space Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--green)">₹{{ pending_amount }}</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem">Paid out monthly</div>
+    </div>
+    <div class="stat-card">
+      <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.6rem">Referrals</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:var(--white)">{{ total_referrals }}</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem">Signups this month</div>
+    </div>
+    <div class="stat-card">
+      <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.6rem">Conversion</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:var(--white)">64%</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem">Click → signup rate</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:1.5rem">
+    <!-- LEFT -->
+    <div style="display:flex;flex-direction:column;gap:1.5rem">
+
+      <!-- How it works -->
+      <div class="card">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:1.5rem">How It Works</h2>
+        <div style="display:flex;flex-direction:column;gap:1.2rem">
+          <template x-for="s in steps" :key="s.n">
+            <div style="display:flex;gap:1rem;align-items:flex-start">
+              <div class="step-num" x-text="s.n"></div>
+              <div>
+                <div style="font-weight:600;font-size:0.92rem;margin-bottom:0.25rem" x-text="s.title"></div>
+                <div style="font-size:0.83rem;color:var(--text-muted);line-height:1.6" x-text="s.desc"></div>
+              </div>
+              <div style="margin-left:auto;font-family:'Space Mono',monospace;font-size:0.88rem;color:var(--gold);white-space:nowrap;padding-top:0.1rem" x-text="s.reward"></div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Referral history -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem">
+          <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700">Your Referrals</h2>
+          <span style="font-size:0.78rem;color:var(--text-muted)">{{ total_referrals }} total</span>
+        </div>
+        <template x-for="r in referrals" :key="r.name">
+          <div class="ref-row">
+            <div style="width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:0.82rem;font-weight:700;color:var(--dark);flex-shrink:0" :style="'background:'+r.color" x-text="r.initials"></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:0.88rem;font-weight:600" x-text="r.name"></div>
+              <div style="font-size:0.73rem;color:var(--text-muted)" x-text="r.type+' · Joined '+r.date"></div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-family:'Space Mono',monospace;font-size:0.88rem;color:var(--gold);font-weight:700" x-text="r.earned"></div>
+              <span class="badge" :class="r.status==='Active'?'badge-green':r.status==='Pending'?'badge-gold':'badge-dim'" x-text="r.status"></span>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;flex-direction:column;gap:1.2rem">
+      <!-- Commission tiers -->
+      <div class="card">
+        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;font-family:'Space Mono',monospace">// Commission Structure</div>
+        <div style="display:flex;flex-direction:column;gap:0.8rem">
+          <div class="referral-tier-box">
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem">
+              <span style="font-weight:600;font-size:0.88rem">Signup Bonus</span>
+              <span style="font-family:'Space Mono',monospace;color:var(--gold);font-weight:700">₹500</span>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">Per referred user who signs up & verifies</div>
+          </div>
+          <div class="referral-tier-box">
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem">
+              <span style="font-weight:600;font-size:0.88rem">First Job Bonus</span>
+              <span style="font-family:'Space Mono',monospace;color:var(--green);font-weight:700">₹200</span>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">When your referral posts/completes first job</div>
+          </div>
+          <div class="referral-tier-box">
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem">
+              <span style="font-weight:600;font-size:0.88rem">Ongoing Commission</span>
+              <span style="font-family:'Space Mono',monospace;color:var(--gold);font-weight:700">2%</span>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">Of every transaction your referral makes (12 months)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payout request -->
+      <div class="card">
+        <div style="font-size:0.68rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;font-family:'Space Mono',monospace">// Withdraw Earnings</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:1rem;font-size:0.85rem">
+          <span style="color:var(--text-muted)">Available Balance</span>
+          <span style="font-family:'Space Mono',monospace;color:var(--gold);font-weight:700">₹1,000</span>
+        </div>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.8rem">Min withdrawal: ₹500 · Paid via UPI/Bank</div>
+        <button class="btn-gold" style="width:100%;justify-content:center;text-align:center" @click="requestPayout()">Request Payout →</button>
+      </div>
+
+      <!-- Share card -->
+      <div class="ref-promo-teal">
+        <div style="font-size:2rem;margin-bottom:0.7rem">🎁</div>
+        <div style="font-weight:700;font-size:0.95rem;margin-bottom:0.4rem">Surat's Best Kept Secret</div>
+        <div style="font-size:0.8rem;opacity:0.88;margin-bottom:1rem;line-height:1.5">Every Surat business & freelancer deserves SuratPro. Share & earn!</div>
+        <div class="ref-promo-inner sp-mono" x-text="refLink"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div x-show="toast" x-transition style="position:fixed;right:1rem;bottom:1rem;background:var(--mid);border:1px solid var(--border-gold);color:var(--white);padding:0.8rem 1rem;border-radius:10px;z-index:700">
+  <span x-text="toast"></span>
+</div>
+
+<script>
+function referralApp() {
+  const seedReferrals = {{ referrals_json|safe }};
+  return {
+    copied: false,
+    toast: '',
+    refLink: 'suratpro.in/ref/SM2026XYZ',
+    steps: [
+      {n:'01',title:'Share Your Link',desc:'Copy your unique referral link and share it with friends, businesses, and your network.',reward:'Free'},
+      {n:'02',title:'They Sign Up',desc:'Your friend creates an account using your link. Both of you get ₹100 welcome bonus.',reward:'₹500'},
+      {n:'03',title:'They Post or Work',desc:'When your referral posts their first job or completes their first gig.',reward:'+₹200'},
+      {n:'04',title:'Earn Ongoing Commission',desc:'You earn 2% of every transaction they make on SuratPro for 12 months.',reward:'2%/txn'},
+    ],
+    referrals: seedReferrals,
+    copyLink() {
+      navigator.clipboard.writeText(this.refLink).then(()=>{ this.copied=true; setTimeout(()=>this.copied=false,2000); });
+    },
+    share(platform) {
+      if(platform==='whatsapp') window.open('https://wa.me/?text=Join%20SuratPro%20-%20Surat\'s%20best%20freelance%20marketplace!%20'+encodeURIComponent('https://'+this.refLink));
+      else this.copyLink();
+    },
+    requestPayout() { this.toast='Payout request created. Processing usually takes 2 business days.'; setTimeout(()=>this.toast='',2200); }
+  }
+}
+</script>
+{% endblock %}

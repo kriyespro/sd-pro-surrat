@@ -1,0 +1,207 @@
+{% extends 'base.jinja' %}
+{% block title %}Browse Freelancers{% endblock %}
+{% block meta_desc %}Find top freelancers in Surat{% endblock %}
+
+{% block extra_head %}
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 5%;height:64px;background:var(--browse-nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-gold);box-shadow:var(--shadow-sm)}
+.logo{font-family:'Playfair Display',serif;font-size:1.55rem;font-weight:900;color:var(--white)}
+.logo span{color:var(--gold)}
+.search-bar{display:flex;align-items:center;gap:0;background:var(--input-bg);border:1.5px solid var(--input-border);border-radius:12px;overflow:hidden;transition:all 0.2s;flex:1;max-width:520px}
+.search-bar:focus-within{border-color:var(--gold);background:var(--mid)}
+.search-bar input{flex:1;background:transparent;border:none;outline:none;padding:0.75rem 1rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.9rem}
+.search-bar input::placeholder{color:var(--text-dim)}
+.search-bar button{padding:0.75rem 1.2rem;background:var(--gold);color:var(--dark);border:none;font-family:'DM Sans',sans-serif;font-weight:700;cursor:pointer;font-size:0.85rem;transition:background 0.2s;white-space:nowrap}
+.search-bar button:hover{background:var(--gold-light)}
+.filter-panel{background:var(--mid);border:1px solid var(--border);border-radius:16px;padding:1.5rem}
+.filter-label{font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:0.8rem;font-family:'Space Mono',monospace}
+.filter-chip{display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;border-radius:100px;border:1.5px solid var(--input-border);background:var(--chip-bg);color:var(--text-muted);font-size:0.78rem;cursor:pointer;transition:all 0.2s;font-weight:500}
+.filter-chip:hover,.filter-chip.active{border-color:var(--gold);background:var(--gold-dim);color:var(--gold)}
+.fl-card{background:var(--mid);border:1px solid var(--border);border-radius:18px;padding:1.5rem;transition:all 0.3s cubic-bezier(0.22,1,0.36,1);cursor:pointer;position:relative;overflow:hidden}
+.fl-card-accent{position:absolute;top:0;left:0;right:0;height:3px;transform:scaleX(0);transform-origin:left;transition:transform 0.4s}
+.fl-card:hover .fl-card-accent{transform:scaleX(1)}
+.fl-card:hover{border-color:var(--border-gold);transform:translateY(-4px);box-shadow:var(--shadow-md)}
+.fl-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--dark);flex-shrink:0}
+.fl-tag{background:rgba(184,137,46,0.12);color:var(--gold);padding:0.18rem 0.55rem;border-radius:4px;font-size:0.7rem;border:1px solid rgba(184,137,46,0.28);transition:background 0.2s,border-color 0.2s,color 0.2s}
+.fl-tag:hover{background:var(--gold-dim);border-color:var(--border-gold);color:var(--gold)}
+html.theme-dark .fl-tag{background:rgba(13,110,110,0.18);color:#7FCFCF;border-color:rgba(13,110,110,0.32)}
+html.theme-dark .fl-tag:hover{background:rgba(13,110,110,0.35);border-color:rgba(13,110,110,0.55);color:#b8f5f0}
+.btn-outline{padding:0.5rem 1.1rem;border:1.5px solid var(--border-gold);color:var(--gold);background:transparent;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:600;cursor:pointer;transition:all 0.2s}
+.btn-outline:hover{background:var(--gold);color:var(--dark)}
+.btn-solid{padding:0.5rem 1.2rem;background:var(--gold);color:var(--dark);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:700;cursor:pointer;transition:all 0.2s}
+.btn-solid:hover{background:var(--gold-light);transform:translateY(-1px)}
+.range-input{width:100%;accent-color:var(--gold);cursor:pointer}
+.select-field{width:100%;background:var(--input-bg);border:1.5px solid var(--input-border);border-radius:8px;padding:0.6rem 0.8rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;cursor:pointer}
+.select-field:focus{border-color:var(--gold)}
+</style>
+{% endblock %}
+
+{% block nav %}
+  {% include 'components/nav.jinja' %}
+{% endblock %}
+
+{% block content %}
+<!-- NAV -->
+
+
+<!-- PAGE -->
+<div x-data="browseApp()">
+<div style="display:grid;grid-template-columns:280px 1fr;gap:2rem;padding:2rem 5%;max-width:1400px;margin:0 auto">
+
+  <!-- FILTER SIDEBAR -->
+  <aside>
+    <div class="filter-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <span style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700">Filters</span>
+        <button @click="resetFilters()" style="font-size:0.78rem;color:var(--gold);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif">Reset All</button>
+      </div>
+
+      <!-- Category -->
+      <div style="margin-bottom:1.5rem">
+        <p class="filter-label">Category</p>
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+          <template x-for="cat in categories" :key="cat">
+            <label style="display:flex;align-items:center;gap:0.6rem;cursor:pointer;font-size:0.85rem;color:var(--text-muted)">
+              <input type="checkbox" class="accent-[var(--gold)]" @change="toggleCategory(cat)" :checked="selectedCats.includes(cat)">
+              <span x-text="cat"></span>
+            </label>
+          </template>
+        </div>
+      </div>
+
+      <!-- Budget -->
+      <div style="margin-bottom:1.5rem">
+        <p class="filter-label">Hourly Rate (₹/hr)</p>
+        <div style="display:flex;gap:0.5rem;margin-bottom:0.6rem">
+          <input type="number" class="select-field" placeholder="Min" x-model="minRate" style="width:80px">
+          <span style="color:var(--text-dim);align-self:center">—</span>
+          <input type="number" class="select-field" placeholder="Max" x-model="maxRate" style="width:80px">
+        </div>
+      </div>
+
+      <!-- Rating -->
+      <div style="margin-bottom:1.5rem">
+        <p class="filter-label">Min Rating</p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
+          <template x-for="r in [3,3.5,4,4.5,5]" :key="r">
+            <button class="filter-chip" :class="{'active': minRating===r}" @click="minRating=r" x-text="'★ '+r+'+'" style="font-size:0.75rem"></button>
+          </template>
+        </div>
+      </div>
+
+      <!-- Availability -->
+      <div style="margin-bottom:1.5rem">
+        <p class="filter-label">Availability</p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
+          <button class="filter-chip" :class="{'active': availability==='all'}" @click="availability='all'">All</button>
+          <button class="filter-chip" :class="{'active': availability==='online'}" @click="availability='online'">🟢 Online Now</button>
+          <button class="filter-chip" :class="{'active': availability==='available'}" @click="availability='available'">Available</button>
+        </div>
+      </div>
+
+      <!-- Sort -->
+      <div>
+        <p class="filter-label">Sort By</p>
+        <select class="select-field" x-model="sortBy">
+          <option value="rating">Top Rated</option>
+          <option value="rate_asc">Price: Low to High</option>
+          <option value="rate_desc">Price: High to Low</option>
+          <option value="reviews">Most Reviews</option>
+        </select>
+      </div>
+    </div>
+  </aside>
+
+  <!-- RESULTS -->
+  <main>
+    <!-- Top bar -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+      <div>
+        <h1 style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900">Browse Talent</h1>
+        <p style="font-size:0.83rem;color:var(--text-muted);margin-top:0.2rem"><span x-text="filtered.length"></span> professionals found in Surat</p>
+      </div>
+      <!-- View toggle -->
+      <div style="display:flex;gap:0.4rem">
+        <button @click="view='grid'" :style="view==='grid'?'background:var(--gold);color:var(--dark)':''" style="padding:0.5rem 0.9rem;border-radius:8px;border:1.5px solid var(--border-gold);color:var(--gold);background:transparent;cursor:pointer;font-size:0.85rem;font-family:'DM Sans',sans-serif;font-weight:600;transition:all 0.2s">⊞ Grid</button>
+        <button @click="view='list'" :style="view==='list'?'background:var(--gold);color:var(--dark)':''" style="padding:0.5rem 0.9rem;border-radius:8px;border:1.5px solid var(--border-gold);color:var(--gold);background:transparent;cursor:pointer;font-size:0.85rem;font-family:'DM Sans',sans-serif;font-weight:600;transition:all 0.2s">☰ List</button>
+      </div>
+    </div>
+
+    <!-- Quick filter chips -->
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.5rem">
+      <template x-for="cat in categories.slice(0,6)" :key="cat">
+        <button class="filter-chip" :class="{'active': selectedCats.includes(cat)}" @click="toggleCategory(cat)" x-text="cat"></button>
+      </template>
+    </div>
+
+    <!-- Grid -->
+    <div :style="view==='grid' ? 'display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem' : 'display:flex;flex-direction:column;gap:1rem'">
+      <template x-for="fl in filtered" :key="fl.id">
+        <a :href="'/profile/' + fl.username + '/'" class="fl-card" style="text-decoration:none">
+          <div class="fl-card-accent" :style="'background:linear-gradient(to right,'+fl.color1+','+fl.color2+')'"></div>
+          <div style="display:flex;align-items:flex-start;gap:0.9rem;margin-bottom:0.9rem">
+            <div class="fl-avatar" :style="'background:linear-gradient(135deg,'+fl.color1+','+fl.color2+')'">
+              <span x-text="fl.initials"></span>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:0.95rem" x-text="fl.name"></div>
+              <div style="font-size:0.78rem;color:var(--text-muted)" x-text="fl.title"></div>
+              <div style="font-size:0.72rem;color:var(--green);margin-top:2px" x-text="fl.status==='online' ? '🟢 Online' : '⚡ Available'"></div>
+            </div>
+            <div style="background:var(--gold-dim);border:1px solid var(--border-gold);color:var(--gold);padding:0.2rem 0.55rem;border-radius:100px;font-size:0.68rem;font-weight:700;white-space:nowrap">★ <span x-text="fl.rating"></span></div>
+          </div>
+          <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6;margin-bottom:0.9rem" x-text="fl.bio"></p>
+          <div style="display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:1rem">
+            <template x-for="tag in fl.tags" :key="tag">
+              <span class="fl-tag" x-text="tag"></span>
+            </template>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:0.9rem">
+            <div style="font-family:'Space Mono',monospace;font-size:0.95rem;color:var(--gold)">₹<span x-text="fl.rate.toLocaleString('en-IN')"></span><small style="font-size:0.65rem;color:var(--text-muted);font-family:'DM Sans',sans-serif">/hr</small></div>
+            <div style="font-size:0.75rem;color:var(--text-muted)"><span x-text="fl.reviews"></span> reviews</div>
+          </div>
+        </a>
+      </template>
+    </div>
+
+    <!-- Empty state -->
+    <div x-show="filtered.length===0" style="text-align:center;padding:4rem 2rem">
+      <div style="font-size:3rem;margin-bottom:1rem">🔍</div>
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:0.5rem">No freelancers found</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem">Try adjusting your filters or search query</p>
+    </div>
+  </main>
+</div>
+</div>
+
+<script>
+function browseApp() {
+  const allFreelancers = {{ freelancers_data_json|safe }};
+  return {
+    searchQuery:'', selectedCats:[], minRate:'', maxRate:'', minRating:0, availability:'all', sortBy:'rating', view:'grid',
+    categories: {{ category_names_json|safe }},
+    get filtered() {
+      let list = allFreelancers.filter(f => {
+        const q = this.searchQuery.toLowerCase();
+        const matchQ = !q || f.name.toLowerCase().includes(q) || f.title.toLowerCase().includes(q) || f.tags.some(t=>t.toLowerCase().includes(q));
+        const matchCat = this.selectedCats.length===0 || this.selectedCats.includes(f.cat);
+        const matchMin = !this.minRate || f.rate >= parseInt(this.minRate);
+        const matchMax = !this.maxRate || f.rate <= parseInt(this.maxRate);
+        const matchRating = f.rating >= this.minRating;
+        const matchAvail = this.availability==='all' || (this.availability==='online' && f.status==='online');
+        return matchQ && matchCat && matchMin && matchMax && matchRating && matchAvail;
+      });
+      if(this.sortBy==='rating') list.sort((a,b)=>b.rating-a.rating);
+      else if(this.sortBy==='rate_asc') list.sort((a,b)=>a.rate-b.rate);
+      else if(this.sortBy==='rate_desc') list.sort((a,b)=>b.rate-a.rate);
+      else if(this.sortBy==='reviews') list.sort((a,b)=>b.reviews-a.reviews);
+      return list;
+    },
+    toggleCategory(cat){const i=this.selectedCats.indexOf(cat);i>-1?this.selectedCats.splice(i,1):this.selectedCats.push(cat)},
+    resetFilters(){this.searchQuery='';this.selectedCats=[];this.minRate='';this.maxRate='';this.minRating=0;this.availability='all';this.sortBy='rating'},
+    filterFreelancers(){}
+  }
+}
+</script>
+{% endblock %}

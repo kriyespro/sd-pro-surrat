@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — SuratPro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<style>
+:root{--gold:#E8A830;--gold-light:#F5C96A;--gold-dim:rgba(232,168,48,0.12);--teal:#0D6E6E;--teal-dark:#094F4F;--teal-light:#1A9090;--saffron:#E85D04;--dark:#080F0F;--dark2:#0D1A1A;--mid:#142323;--mid2:#1C3030;--white:#FFFFFF;--text-muted:#7AABAB;--text-dim:#4A7A7A;--border:rgba(255,255,255,0.07);--border-gold:rgba(232,168,48,0.25);--green:#3ECA8F;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--white);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--dark)}::-webkit-scrollbar-thumb{background:var(--teal);border-radius:4px}
+.logo{font-family:'Playfair Display',serif;font-size:1.55rem;font-weight:900;color:var(--white)}
+.logo span{color:var(--gold)}
+.auth-bg{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 60% at 80% 20%,rgba(13,110,110,0.28) 0%,transparent 65%),radial-gradient(ellipse 50% 50% at 10% 80%,rgba(232,168,48,0.08) 0%,transparent 60%)}
+.geo-lines{position:fixed;top:0;right:0;width:50%;height:100%;opacity:0.03;background-image:repeating-linear-gradient(45deg,var(--gold) 0,var(--gold) 1px,transparent 0,transparent 48px),repeating-linear-gradient(-45deg,var(--gold) 0,var(--gold) 1px,transparent 0,transparent 48px);pointer-events:none}
+.auth-card{background:linear-gradient(145deg,#1a2d2d,#0f1e1e);border:1px solid rgba(255,255,255,0.08);border-radius:20px;box-shadow:0 40px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.04)}
+.input-field{width:100%;background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:0.85rem 1rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.9rem;transition:all 0.2s;outline:none}
+.input-field:focus{border-color:var(--gold);background:rgba(232,168,48,0.05);box-shadow:0 0 0 3px rgba(232,168,48,0.1)}
+.input-field::placeholder{color:var(--text-dim)}
+.btn-auth{width:100%;padding:0.9rem;background:var(--gold);color:var(--dark);border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden}
+.btn-auth::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.22) 60%,transparent 70%);transform:translateX(-100%);transition:transform 0.5s}
+.btn-auth:hover::after{transform:translateX(100%)}
+.btn-auth:hover{background:var(--gold-light);transform:translateY(-1px);box-shadow:0 14px 36px rgba(232,168,48,0.35)}
+.tab-btn{flex:1;padding:0.7rem;border:none;background:transparent;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+.divider-text{display:flex;align-items:center;gap:1rem;color:var(--text-dim);font-size:0.78rem;margin:1.2rem 0}
+.divider-text::before,.divider-text::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.07)}
+.social-btn{width:100%;padding:0.78rem;background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:10px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:500;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:0.6rem}
+.social-btn:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2)}
+.role-card{border:1.5px solid rgba(255,255,255,0.1);border-radius:12px;padding:1rem;cursor:pointer;transition:all 0.2s;background:rgba(255,255,255,0.03)}
+.role-card.selected{border-color:var(--gold);background:var(--gold-dim)}
+.role-card:hover{border-color:rgba(232,168,48,0.4)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp 0.6s cubic-bezier(0.22,1,0.36,1) both}
+</style>
+</head>
+<body x-data="authApp()" class="flex flex-col min-h-screen">
+<div class="auth-bg"></div>
+<div class="geo-lines"></div>
+
+<!-- NAV -->
+<nav class="relative z-10 flex items-center justify-between px-[5%] h-16 border-b border-white/5">
+  <a href="index.html" class="logo">Surat<span>Pro</span></a>
+  <a href="index.html" class="text-sm text-[var(--text-muted)] hover:text-[var(--gold)] transition-colors">← Back to Home</a>
+</nav>
+
+<!-- MAIN -->
+<main class="relative z-10 flex-1 flex items-center justify-center px-4 py-12">
+  <div class="auth-card w-full max-w-md p-8 fade-up">
+
+    <!-- Logo -->
+    <div class="text-center mb-6">
+      <span class="logo text-2xl">Surat<span>Pro</span></span>
+      <p class="text-[var(--text-muted)] text-sm mt-1">Surat's #1 Freelance Marketplace</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-white/07 mb-6">
+      <button class="tab-btn" :class="{'active': tab==='login'}" @click="tab='login'">Log In</button>
+      <button class="tab-btn" :class="{'active': tab==='register'}" @click="tab='register'">Create Account</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div x-show="tab==='login'" x-transition>
+      <form @submit.prevent="handleLogin" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Email</label>
+          <input type="email" class="input-field" placeholder="you@example.com" x-model="loginEmail" required>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Password</label>
+          <div class="relative">
+            <input :type="showPass ? 'text' : 'password'" class="input-field pr-12" placeholder="••••••••" x-model="loginPass" required>
+            <button type="button" @click="showPass=!showPass" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-dim)] hover:text-[var(--gold)] transition-colors text-sm">
+              <span x-text="showPass ? '🙈' : '👁'"></span>
+            </button>
+          </div>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <label class="flex items-center gap-2 text-[var(--text-muted)] cursor-pointer">
+            <input type="checkbox" class="accent-[var(--gold)]"> Remember me
+          </label>
+          <a href="#" class="text-[var(--gold)] hover:underline text-xs">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn-auth mt-2" :disabled="loading">
+          <span x-show="!loading">Log In →</span>
+          <span x-show="loading">Logging in…</span>
+        </button>
+      </form>
+      <div class="divider-text">or continue with</div>
+      <div class="grid grid-cols-2 gap-3">
+        <button class="social-btn"><span>G</span> Google</button>
+        <button class="social-btn"><span>📱</span> OTP</button>
+      </div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div x-show="tab==='register'" x-transition>
+      <!-- Role selection -->
+      <p class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">I want to…</p>
+      <div class="grid grid-cols-2 gap-3 mb-5">
+        <div class="role-card" :class="{'selected': role==='client'}" @click="role='client'">
+          <div class="text-xl mb-1">🏢</div>
+          <div class="font-semibold text-sm">Hire Talent</div>
+          <div class="text-xs text-[var(--text-muted)] mt-0.5">I'm a client</div>
+        </div>
+        <div class="role-card" :class="{'selected': role==='freelancer'}" @click="role='freelancer'">
+          <div class="text-xl mb-1">💼</div>
+          <div class="font-semibold text-sm">Find Work</div>
+          <div class="text-xs text-[var(--text-muted)] mt-0.5">I'm a freelancer</div>
+        </div>
+      </div>
+      <form @submit.prevent="handleRegister" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">First Name</label>
+            <input type="text" class="input-field" placeholder="Riya" required>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Last Name</label>
+            <input type="text" class="input-field" placeholder="Agarwal" required>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Email</label>
+          <input type="email" class="input-field" placeholder="you@example.com" required>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Mobile (for OTP)</label>
+          <input type="tel" class="input-field" placeholder="+91 98765 43210" required>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Password</label>
+          <input type="password" class="input-field" placeholder="Min 8 characters" required>
+        </div>
+        <div class="flex items-start gap-2 text-xs text-[var(--text-muted)]">
+          <input type="checkbox" class="accent-[var(--gold)] mt-0.5" required>
+          <span>I agree to the <a href="#" class="text-[var(--gold)] hover:underline">Terms of Service</a> and <a href="#" class="text-[var(--gold)] hover:underline">Privacy Policy</a></span>
+        </div>
+        <button type="submit" class="btn-auth">Create Account →</button>
+      </form>
+      <div class="divider-text">or continue with</div>
+      <button class="social-btn w-full"><span>G</span> Sign up with Google</button>
+    </div>
+
+    <!-- Bottom note -->
+    <p class="text-center text-xs text-[var(--text-dim)] mt-6">
+      🔒 Secured with 256-bit encryption · Trusted by 4,200+ Surat users
+    </p>
+  </div>
+</main>
+
+<script>
+function authApp() {
+  return {
+    tab: 'login', role: 'client', showPass: false, loading: false,
+    loginEmail: '', loginPass: '',
+    handleLogin() { this.loading=true; setTimeout(()=>{ this.loading=false; window.location.href='dashboard.html'; }, 1200); },
+    handleRegister() { window.location.href='dashboard.html'; }
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en" x-data="mc()" x-init="init()">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mission Control — SuratPro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <style>
+    :root{--gold:#E8A830;--teal:#0D6E6E;--dark:#070E0E;--dark2:#0C1919;--mid:#112020;--border:#1A3030;--border2:#243838;--text:#D0E6E6;--muted:#6A9898;--green:#3ECA8F;--red:#E85D04;--blue:#3B82F6;--purple:#8B5CF6}
+    [x-cloak]{display:none!important}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13.5px;line-height:1.5}
+    a{color:inherit;text-decoration:none}
+
+    /* ── Layout ── */
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:220px;background:var(--dark2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;flex-shrink:0}
+    .main{flex:1;min-width:0;display:flex;flex-direction:column}
+    .topbar{background:var(--dark2);border-bottom:1px solid var(--border);padding:0 1.5rem;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+
+    /* ── Sidebar ── */
+    .sb-logo{padding:1.1rem 1.25rem;border-bottom:1px solid var(--border);font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:900;color:#fff}
+    .sb-logo span{color:var(--gold)}
+    .sb-logo small{display:block;font-family:'Space Mono',monospace;font-size:.65rem;color:var(--muted);font-weight:400;margin-top:1px}
+    .sb-nav{padding:.6rem .6rem;flex:1;overflow-y:auto}
+    .sb-section{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:.8rem .65rem .35rem;margin-top:.4rem}
+    .sb-item{display:flex;align-items:center;gap:.65rem;padding:.55rem .75rem;border-radius:8px;cursor:pointer;transition:all .15s;color:var(--muted);font-size:.82rem;font-weight:500;border:none;background:none;width:100%;text-align:left}
+    .sb-item:hover{color:var(--text);background:var(--mid)}
+    .sb-item.active{color:var(--gold);background:rgba(232,168,48,.1);border-left:2px solid var(--gold);padding-left:calc(.75rem - 2px)}
+    .sb-item .ico{font-size:.9rem;width:18px;text-align:center;flex-shrink:0}
+    .sb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:99px;min-width:16px;text-align:center}
+    .sb-badge.ok{background:var(--mid);color:var(--muted)}
+    .sb-footer{padding:.8rem 1rem;border-top:1px solid var(--border);font-size:.72rem;color:var(--muted)}
+    .sb-footer a{display:block;color:var(--muted);padding:.25rem 0}
+    .sb-footer a:hover{color:var(--gold)}
+
+    /* ── Topbar ── */
+    .tb-left{display:flex;align-items:center;gap:1rem}
+    .badge-live{background:var(--green);color:#000;font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:99px;letter-spacing:.06em}
+    .tb-time{font-family:'Space Mono',monospace;font-size:.72rem;color:var(--muted)}
+    .tb-right{display:flex;align-items:center;gap:.75rem}
+    .tb-btn{font-size:.75rem;color:var(--muted);padding:.3rem .7rem;border-radius:6px;border:1px solid var(--border);background:transparent;cursor:pointer;transition:all .15s}
+    .tb-btn:hover{color:var(--text);border-color:var(--border2)}
+
+    /* ── Content ── */
+    .content{padding:1.5rem 1.75rem 3rem;flex:1}
+    .section-hd{margin-bottom:1.5rem}
+    .section-hd h1{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;color:#fff;margin-bottom:.25rem}
+    .section-hd p{font-size:.82rem;color:var(--muted)}
+
+    /* ── KPI Grid ── */
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.65rem;margin-bottom:1.5rem}
+    .kpi{background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;position:relative;overflow:hidden}
+    .kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+    .kpi.gold::after{background:var(--gold)}.kpi.teal::after{background:var(--teal)}.kpi.green::after{background:var(--green)}.kpi.red::after{background:var(--red)}.kpi.blue::after{background:var(--blue)}.kpi.purple::after{background:var(--purple)}
+    .kpi-lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem}
+    .kpi-val{font-family:'Space Mono',monospace;font-size:1.7rem;font-weight:700;line-height:1;color:#fff}
+    .kpi-sub{font-size:.65rem;color:var(--muted);margin-top:.3rem}
+    .sparkline{display:flex;align-items:flex-end;gap:2px;height:28px;margin-top:.6rem}
+    .spark-bar{flex:1;background:var(--gold);border-radius:2px 2px 0 0;opacity:.65;min-height:2px;transition:opacity .2s}
+    .spark-bar:hover{opacity:1}
+
+    /* ── Two-col ── */
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem}
+    @media(max-width:900px){.two-col{grid-template-columns:1fr}}
+
+    /* ── Panel ── */
+    .panel{background:var(--dark2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    .panel-hd{padding:.65rem 1.1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+    .panel-title{font-weight:600;font-size:.82rem;color:var(--text)}
+    .p-badge{font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--mid);color:var(--muted)}
+    .p-badge.alert{background:rgba(232,93,4,.15);color:var(--red)}
+
+    /* ── Table rows ── */
+    .trow{display:flex;align-items:center;gap:.65rem;padding:.55rem 1.1rem;border-bottom:1px solid rgba(255,255,255,.03);transition:background .12s}
+    .trow:last-child{border-bottom:none}
+    .trow:hover{background:var(--mid)}
+    .av{width:30px;height:30px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;flex-shrink:0;color:#fff}
+    .ti{flex:1;min-width:0}
+    .tn{font-weight:600;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .tm{font-size:.7rem;color:var(--muted);margin-top:1px}
+    .ta{display:flex;gap:.3rem;flex-shrink:0;flex-wrap:wrap}
+
+    /* ── Table (management) ── */
+    .mgmt-table{width:100%;border-collapse:collapse}
+    .mgmt-table th{padding:.55rem .85rem;text-align:left;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);background:var(--dark2);white-space:nowrap}
+    .mgmt-table td{padding:.5rem .85rem;font-size:.78rem;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
+    .mgmt-table tr:hover td{background:var(--mid)}
+    .mgmt-table tr:last-child td{border-bottom:none}
+    .tbl-wrap{overflow-x:auto;background:var(--dark2);border:1px solid var(--border);border-radius:10px}
+    .tbl-hd{padding:.65rem 1.1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .tbl-title{font-weight:600;font-size:.82rem}
+    .tbl-search{padding:.35rem .75rem;background:var(--mid);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.75rem;outline:none;width:200px}
+    .tbl-search:focus{border-color:var(--gold)}
+
+    /* ── Buttons ── */
+    .btn{display:inline-flex;align-items:center;gap:.25rem;font-size:.7rem;font-weight:600;padding:3px 8px;border-radius:5px;border:none;cursor:pointer;transition:opacity .15s;font-family:inherit}
+    .btn:hover{opacity:.8}
+    .btn-g{background:rgba(62,202,143,.15);color:var(--green)}
+    .btn-r{background:rgba(232,93,4,.15);color:var(--red)}
+    .btn-o{background:rgba(232,168,48,.15);color:var(--gold)}
+    .btn-b{background:rgba(59,130,246,.15);color:var(--blue)}
+    .btn-p{background:rgba(139,92,246,.15);color:var(--purple)}
+    .btn-gh{background:var(--mid);color:var(--muted)}
+
+    /* ── Tags ── */
+    .tag{display:inline-block;font-size:.62rem;font-weight:600;padding:1px 6px;border-radius:99px;white-space:nowrap}
+    .t-active{background:rgba(62,202,143,.15);color:var(--green)}
+    .t-draft{background:var(--mid);color:var(--muted)}
+    .t-disputed{background:rgba(232,93,4,.15);color:var(--red)}
+    .t-pending{background:rgba(232,168,48,.15);color:var(--gold)}
+    .t-done{background:rgba(59,130,246,.15);color:var(--blue)}
+    .t-banned{background:rgba(232,93,4,.25);color:var(--red)}
+
+    /* ── Search filter ── */
+    .filter-bar{display:flex;gap:.5rem;align-items:center;padding:.65rem 1.1rem;border-bottom:1px solid var(--border);background:var(--dark2)}
+    .filter-inp{padding:.32rem .7rem;background:var(--mid);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.75rem;outline:none;flex:1;max-width:260px}
+    .filter-inp:focus{border-color:var(--gold)}
+    .filter-sel{padding:.32rem .7rem;background:var(--mid);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.75rem;outline:none;cursor:pointer}
+
+    /* ── Toast ── */
+    .toast-wrap{position:fixed;bottom:1.25rem;right:1.25rem;display:flex;flex-direction:column;gap:.4rem;z-index:9999}
+    .toast{background:var(--dark2);border:1px solid var(--border);border-left:3px solid var(--green);padding:.5rem .9rem;border-radius:7px;font-size:.78rem;animation:slideIn .2s ease}
+    .toast.err{border-left-color:var(--red)}
+    @keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:none;opacity:1}}
+
+    hr.div{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
+    .sec-lbl{font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem}
+    .empty{padding:1.5rem;text-align:center;color:var(--muted);font-size:.8rem}
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sb-logo">Surat<span>Pro</span><small>// Mission Control</small></div>
+    <nav class="sb-nav">
+      <div class="sb-section">Overview</div>
+      <button class="sb-item" :class="{active:tab==='overview'}" @click="tab='overview'"><span class="ico">📊</span> Dashboard</button>
+
+      <div class="sb-section">Platform</div>
+      <button class="sb-item" :class="{active:tab==='users'}" @click="tab='users'"><span class="ico">👥</span> Users <span class="sb-badge ok">{{ all_users|length }}</span></button>
+      <button class="sb-item" :class="{active:tab==='jobs'}" @click="tab='jobs'"><span class="ico">💼</span> Jobs <span class="sb-badge ok">{{ all_jobs|length }}</span></button>
+      <button class="sb-item" :class="{active:tab==='proposals'}" @click="tab='proposals'"><span class="ico">📨</span> Proposals <span class="sb-badge ok">{{ all_proposals|length }}</span></button>
+      <button class="sb-item" :class="{active:tab==='contracts'}" @click="tab='contracts'"><span class="ico">📋</span> Contracts <span class="sb-badge ok">{{ all_contracts|length }}</span></button>
+      <button class="sb-item" :class="{active:tab==='reviews'}" @click="tab='reviews'"><span class="ico">⭐</span> Reviews {% if pending_reviews_count > 0 %}<span class="sb-badge">{{ pending_reviews_count }}</span>{% endif %}</button>
+      <button class="sb-item" :class="{active:tab==='payments'}" @click="tab='payments'"><span class="ico">💳</span> Payments <span class="sb-badge ok">{{ all_transactions|length }}</span></button>
+
+      <div class="sb-section">Moderation</div>
+      <button class="sb-item" :class="{active:tab==='moderation'}" @click="tab='moderation'"><span class="ico">🛡</span> Queue {% if (pending_reviews_count + open_disputes) > 0 %}<span class="sb-badge">{{ pending_reviews_count + open_disputes }}</span>{% endif %}</button>
+      <button class="sb-item" :class="{active:tab==='leaderboard'}" @click="tab='leaderboard'"><span class="ico">🏆</span> Leaderboard</button>
+    </nav>
+    <div class="sb-footer">
+      <a href="/sd/" target="_blank">Django Admin ↗</a>
+      <a href="/">← Back to site</a>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-left">
+        <span class="badge-live">● LIVE</span>
+        <span class="tb-time">{{ now.strftime("%d %b %Y, %H:%M") }}</span>
+      </div>
+      <div class="tb-right">
+        <span style="font-size:.75rem;color:var(--muted)">admin / {{ request.user.username }}</span>
+        <a href="/auth/logout/" class="tb-btn">Sign out</a>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══════════ OVERVIEW ══════════ -->
+      <div x-show="tab==='overview'" x-cloak>
+        <div class="section-hd">
+          <h1>Dashboard</h1>
+          <p>Platform overview · {{ now.strftime("%A, %d %B %Y") }}</p>
+        </div>
+
+        <div class="sec-lbl">// Revenue</div>
+        <div class="kpi-grid">
+          <div class="kpi gold"><div class="kpi-lbl">Today</div><div class="kpi-val">₹{{ revenue_today|int }}</div><div class="kpi-sub">Milestone releases</div></div>
+          <div class="kpi gold"><div class="kpi-lbl">7 Days</div><div class="kpi-val">₹{{ revenue_week|int }}</div><div class="kpi-sub">Rolling week</div></div>
+          <div class="kpi gold"><div class="kpi-lbl">30 Days</div><div class="kpi-val">₹{{ revenue_month|int }}</div><div class="kpi-sub">Rolling month</div></div>
+          <div class="kpi teal">
+            <div class="kpi-lbl">7-Day Trend</div>
+            <div class="sparkline">
+              {% set max_rev = daily_rev|map(attribute='amt')|max if daily_rev else 1 %}
+              {% for d in daily_rev %}
+                {% set pct = ((d.amt/max_rev)*100)|int if max_rev>0 else 4 %}
+                <div class="spark-bar" style="height:{{ [pct,4]|max }}%" title="{{ d.day }}: ₹{{ d.amt|int }}"></div>
+              {% endfor %}
+            </div>
+            <div class="kpi-sub" style="margin-top:.3rem">Last 7 days</div>
+          </div>
+        </div>
+
+        <div class="sec-lbl">// Platform Health</div>
+        <div class="kpi-grid">
+          <div class="kpi teal"><div class="kpi-lbl">Total Users</div><div class="kpi-val">{{ total_users }}</div><div class="kpi-sub">+{{ new_users_week }} this week</div></div>
+          <div class="kpi teal"><div class="kpi-lbl">Freelancers</div><div class="kpi-val">{{ freelancers }}</div><div class="kpi-sub">{{ clients }} clients</div></div>
+          <div class="kpi teal"><div class="kpi-lbl">Active Users</div><div class="kpi-val">{{ active_users }}</div><div class="kpi-sub">Last 30 days</div></div>
+          <div class="kpi blue"><div class="kpi-lbl">Jobs Posted</div><div class="kpi-val">{{ jobs_posted }}</div><div class="kpi-sub">{{ jobs_active }} active</div></div>
+          <div class="kpi blue"><div class="kpi-lbl">Contracts</div><div class="kpi-val">{{ contracts_active }}</div><div class="kpi-sub">{{ contracts_completed }} completed</div></div>
+          <div class="kpi green"><div class="kpi-lbl">Active Plans</div><div class="kpi-val">{{ active_subscriptions }}</div><div class="kpi-sub">Paid</div></div>
+          <div class="kpi {{ 'red' if contracts_disputed > 0 else 'green' }}"><div class="kpi-lbl">Disputed</div><div class="kpi-val">{{ contracts_disputed }}</div><div class="kpi-sub">In dispute</div></div>
+          <div class="kpi {{ 'red' if pending_reviews_count > 0 else 'green' }}"><div class="kpi-lbl">Review Queue</div><div class="kpi-val">{{ pending_reviews_count }}</div><div class="kpi-sub">Pending</div></div>
+          <div class="kpi {{ 'red' if open_disputes > 0 else 'green' }}"><div class="kpi-lbl">Open Disputes</div><div class="kpi-val">{{ open_disputes }}</div><div class="kpi-sub">Needs action</div></div>
+        </div>
+
+        <hr class="div">
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-hd"><span class="panel-title">Recent Signups</span><span class="p-badge">{{ recent_signups|length }}</span></div>
+            {% for u in recent_signups %}
+            <div class="trow">
+              <div class="av" style="background:{{ 'var(--teal)' if u.role=='freelancer' else 'var(--gold)' }}">{{ u.initials }}</div>
+              <div class="ti"><div class="tn">{{ u.username }}</div><div class="tm"><span class="tag {{ 't-active' if u.role=='freelancer' else 't-done' }}">{{ u.role }}</span> · {{ u.date_joined.strftime("%d %b %Y %H:%M") }}</div></div>
+              {% if u.is_verified %}<span class="tag t-active" style="font-size:.6rem">✓</span>{% endif %}
+            </div>
+            {% else %}<div class="empty">No users yet</div>{% endfor %}
+          </div>
+          <div class="panel">
+            <div class="panel-hd"><span class="panel-title">Recent Transactions</span><span class="p-badge">{{ recent_transactions|length }}</span></div>
+            {% for txn in recent_transactions %}
+            <div class="trow">
+              <div class="av" style="background:{{ 'var(--green)' if txn.type=='release' else ('var(--red)' if txn.type=='refund' else 'var(--teal)') }}">{{ '↑' if txn.type=='topup' else ('✓' if txn.type=='release' else ('↩' if txn.type=='refund' else '⇒')) }}</div>
+              <div class="ti"><div class="tn">{{ txn.wallet.user.username }} · ₹{{ txn.amount|int }}</div><div class="tm"><span class="tag {{ 't-active' if txn.status=='success' else ('t-disputed' if txn.status=='failed' else 't-pending') }}">{{ txn.status }}</span> · {{ txn.type }} · {{ txn.created_at.strftime("%d %b %H:%M") }}</div></div>
+            </div>
+            {% else %}<div class="empty">No transactions yet</div>{% endfor %}
+          </div>
+        </div>
+
+        <hr class="div">
+        <div class="sec-lbl">// Build Status</div>
+        <div class="panel" style="margin-bottom:1.5rem">
+          <div class="panel-hd"><span class="panel-title">Platform Completion</span><span class="p-badge" style="background:rgba(62,202,143,.15);color:var(--green)">MVP ✓</span></div>
+          {% set items = [("Auth & Profiles",True,False),("Job & Gig Posting",True,False),("Search & Discovery",True,False),("Proposals & Bidding",True,False),("Contracts & Milestones",True,False),("Secure Payments (Razorpay-shaped)",True,False),("Messaging & Chat",True,False),("Reviews & Ratings",True,False),("In-app Notifications",True,False),("Referral & Affiliates",True,False),("Subscription / Plans",True,False),("Mission Control",True,False),("Production Prep",True,False),("Onboarding Wizard",True,False),("Proposal File Attachments",True,False),("Feature Gating by Plan",True,False),("Find Work Job Board",True,False),("Razorpay Live Keys",False,True),("Email SMTP Backend",False,True),("Video Calls",False,False),("Push Notifications",False,False)] %}
+          {% for label, done, partial in items %}
+          <div class="trow" style="padding:.42rem 1.1rem">
+            <div class="ti"><div class="tn" style="font-weight:400">{{ label }}</div></div>
+            <span class="tag {{ 't-active' if done else ('t-pending' if partial else 't-disputed') }}">{{ '✅ Done' if done else ('🟠 Partial' if partial else '⬜ Gap') }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- ══════════ USERS ══════════ -->
+      <div x-show="tab==='users'" x-cloak>
+        <div class="section-hd"><h1>Users</h1><p>{{ all_users|length }} total users</p></div>
+        <div class="tbl-wrap">
+          <div class="filter-bar">
+            <input type="text" x-model="uSearch" placeholder="Search username / email…" class="filter-inp">
+            <select x-model="uRole" class="filter-sel">
+              <option value="">All roles</option>
+              <option value="freelancer">Freelancer</option>
+              <option value="client">Client</option>
+            </select>
+            <select x-model="uStatus" class="filter-sel">
+              <option value="">All status</option>
+              <option value="active">Active</option>
+              <option value="banned">Banned</option>
+              <option value="unverified">Unverified</option>
+            </select>
+          </div>
+          <table class="mgmt-table">
+            <thead><tr>
+              <th>User</th><th>Role</th><th>Plan</th><th>Status</th><th>Joined</th><th>Actions</th>
+            </tr></thead>
+            <tbody>
+              {% for u in all_users %}
+              <tr id="u-row-{{ u.id }}"
+                  x-show="(!uSearch || '{{ u.username }}{{ u.email }}{{ u.get_full_name() }}'.toLowerCase().includes(uSearch.toLowerCase())) && (!uRole || '{{ u.role }}'===uRole) && (!uStatus || (uStatus==='banned'?{{ 'true' if not u.is_active else 'false' }}:uStatus==='unverified'?{{ 'false' if u.is_verified else 'true' }}:{{ 'true' if u.is_active else 'false' }}))">
+                <td>
+                  <div style="display:flex;align-items:center;gap:.5rem">
+                    <div class="av" style="background:{{ 'var(--teal)' if u.role=='freelancer' else ('var(--gold)' if u.role=='client' else 'var(--purple)') }};width:26px;height:26px;font-size:.6rem">{{ u.initials }}</div>
+                    <div>
+                      <div style="font-weight:600">{{ u.username }}</div>
+                      <div style="font-size:.67rem;color:var(--muted)">{{ u.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="tag {{ 't-active' if u.role=='freelancer' else 't-done' }}">{{ u.role }}</span></td>
+                <td>{% if u._sub %}<span class="tag t-pending">{{ u._sub.plan.name }}</span>{% else %}<span style="color:var(--muted)">Free</span>{% endif %}</td>
+                <td>
+                  {% if not u.is_active %}<span class="tag t-banned">Banned</span>
+                  {% elif u.is_superuser %}<span class="tag t-pending">Superuser</span>
+                  {% elif u.is_staff %}<span class="tag t-done">Staff</span>
+                  {% elif u.is_verified %}<span class="tag t-active">Verified</span>
+                  {% else %}<span class="tag t-draft">Unverified</span>{% endif %}
+                </td>
+                <td style="color:var(--muted)">{{ u.date_joined.strftime("%d %b %Y") }}</td>
+                <td>
+                  <div class="ta">
+                    <a href="/profile/{{ u.username }}/" class="btn btn-gh" target="_blank">View</a>
+                    {% if not u.is_verified and u.is_active %}
+                    <button class="btn btn-g" hx-post="/sd/moderate/user/{{ u.id }}/verify/" hx-target="#u-row-{{ u.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>✓ Verify</button>
+                    {% endif %}
+                    {% if u.is_active and not u.is_superuser %}
+                    <button class="btn btn-r" hx-post="/sd/moderate/user/{{ u.id }}/ban/" hx-target="#u-row-{{ u.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>⊘ Ban</button>
+                    {% elif not u.is_active %}
+                    <button class="btn btn-g" hx-post="/sd/moderate/user/{{ u.id }}/unban/" hx-target="#u-row-{{ u.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>↺ Unban</button>
+                    {% endif %}
+                    {% if not u.is_superuser %}
+                    <button class="btn btn-p" hx-post="/sd/moderate/user/{{ u.id }}/staff/" hx-target="#u-row-{{ u.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>{{ '− Staff' if u.is_staff else '+ Staff' }}</button>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% else %}<tr><td colspan="6" class="empty">No users</td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════ JOBS ══════════ -->
+      <div x-show="tab==='jobs'" x-cloak>
+        <div class="section-hd"><h1>Jobs</h1><p>{{ all_jobs|length }} total jobs</p></div>
+        <div class="tbl-wrap">
+          <div class="filter-bar">
+            <input type="text" x-model="jSearch" placeholder="Search title / client…" class="filter-inp">
+            <select x-model="jStatus" class="filter-sel">
+              <option value="">All status</option>
+              <option value="active">Active</option>
+              <option value="draft">Draft</option>
+              <option value="completed">Completed</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+          <table class="mgmt-table">
+            <thead><tr><th>Title</th><th>Client</th><th>Budget</th><th>Category</th><th>Proposals</th><th>Status</th><th>Posted</th><th>Actions</th></tr></thead>
+            <tbody>
+              {% for j in all_jobs %}
+              <tr id="j-row-{{ j.id }}"
+                  x-show="(!jSearch || '{{ j.title }}{{ j.client.username }}'.toLowerCase().includes(jSearch.toLowerCase())) && (!jStatus || '{{ j.status }}'===jStatus)">
+                <td><a href="/jobs/{{ j.id }}/" target="_blank" style="color:var(--gold)">{{ j.title[:45] }}{% if j.title|length>45 %}…{% endif %}</a></td>
+                <td>{{ j.client.username }}</td>
+                <td style="font-family:'Space Mono',monospace;font-size:.72rem">₹{{ j.budget_min }}–{{ j.budget_max }}</td>
+                <td>{% if j.category %}<span class="tag t-done">{{ j.category.name[:18] }}</span>{% else %}<span style="color:var(--muted)">—</span>{% endif %}</td>
+                <td style="text-align:center">{{ j.proposal_count }}</td>
+                <td><span class="tag {{ 't-active' if j.status=='active' else ('t-draft' if j.status=='draft' else ('t-done' if j.status=='completed' else 't-disputed')) }}">{{ j.status }}</span></td>
+                <td style="color:var(--muted)">{{ j.created_at.strftime("%d %b %Y") }}</td>
+                <td>
+                  <div class="ta">
+                    {% if j.status=='draft' %}
+                    <button class="btn btn-g" hx-post="/sd/moderate/job/{{ j.id }}/activate/" hx-target="#j-row-{{ j.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>▶ Activate</button>
+                    {% endif %}
+                    <button class="btn btn-o" hx-post="/sd/moderate/job/{{ j.id }}/feature/" hx-target="#j-row-{{ j.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>★ {{ 'Unfeature' if j.is_featured else 'Feature' }}</button>
+                    <button class="btn btn-r" hx-post="/sd/moderate/job/{{ j.id }}/delete/" hx-target="#j-row-{{ j.id }}" hx-swap="outerHTML" hx-confirm="Delete this job permanently?" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>✕ Delete</button>
+                  </div>
+                </td>
+              </tr>
+              {% else %}<tr><td colspan="8" class="empty">No jobs</td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════ PROPOSALS ══════════ -->
+      <div x-show="tab==='proposals'" x-cloak>
+        <div class="section-hd"><h1>Proposals</h1><p>{{ all_proposals|length }} total proposals</p></div>
+        <div class="tbl-wrap">
+          <div class="filter-bar">
+            <input type="text" x-model="pSearch" placeholder="Search freelancer / job…" class="filter-inp">
+            <select x-model="pStatus" class="filter-sel">
+              <option value="">All status</option>
+              <option value="pending">Pending</option>
+              <option value="accepted">Accepted</option>
+              <option value="rejected">Rejected</option>
+              <option value="shortlisted">Shortlisted</option>
+            </select>
+          </div>
+          <table class="mgmt-table">
+            <thead><tr><th>Freelancer</th><th>Job</th><th>Client</th><th>Rate</th><th>Days</th><th>Status</th><th>Submitted</th></tr></thead>
+            <tbody>
+              {% for p in all_proposals %}
+              <tr x-show="(!pSearch || '{{ p.freelancer.username }}{{ p.job.title }}'.toLowerCase().includes(pSearch.toLowerCase())) && (!pStatus || '{{ p.status }}'===pStatus)">
+                <td><a href="/profile/{{ p.freelancer.username }}/" target="_blank" style="color:var(--gold)">{{ p.freelancer.username }}</a></td>
+                <td><a href="/jobs/{{ p.job.id }}/" target="_blank" style="color:var(--muted)">{{ p.job.title[:40] }}{% if p.job.title|length>40 %}…{% endif %}</a></td>
+                <td style="color:var(--muted)">{{ p.job.client.username }}</td>
+                <td style="font-family:'Space Mono',monospace;font-size:.72rem">₹{{ p.proposed_rate|int }}</td>
+                <td>{{ p.delivery_days }}d</td>
+                <td><span class="tag {{ 't-active' if p.status=='accepted' else ('t-disputed' if p.status=='rejected' else ('t-pending' if p.status=='shortlisted' else 't-draft')) }}">{{ p.status }}</span></td>
+                <td style="color:var(--muted)">{{ p.created_at.strftime("%d %b %Y") }}</td>
+              </tr>
+              {% else %}<tr><td colspan="7" class="empty">No proposals</td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════ CONTRACTS ══════════ -->
+      <div x-show="tab==='contracts'" x-cloak>
+        <div class="section-hd"><h1>Contracts</h1><p>{{ all_contracts|length }} total contracts</p></div>
+        <div class="tbl-wrap">
+          <div class="filter-bar">
+            <input type="text" x-model="cSearch" placeholder="Search job / client / freelancer…" class="filter-inp">
+            <select x-model="cStatus" class="filter-sel">
+              <option value="">All status</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="disputed">Disputed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <table class="mgmt-table">
+            <thead><tr><th>Job</th><th>Client</th><th>Freelancer</th><th>Value</th><th>Milestones</th><th>Signed</th><th>Status</th><th>Created</th></tr></thead>
+            <tbody>
+              {% for c in all_contracts %}
+              <tr x-show="(!cSearch || '{{ c.job.title }}{{ c.client.username }}{{ c.freelancer.username }}'.toLowerCase().includes(cSearch.toLowerCase())) && (!cStatus || '{{ c.status }}'===cStatus)">
+                <td><a href="/contracts/{{ c.id }}/" target="_blank" style="color:var(--gold)">{{ c.job.title[:35] }}{% if c.job.title|length>35 %}…{% endif %}</a></td>
+                <td>{{ c.client.username }}</td>
+                <td>{{ c.freelancer.username }}</td>
+                <td style="font-family:'Space Mono',monospace;font-size:.72rem;color:var(--gold)">₹{{ c.total_value|int }}</td>
+                <td style="text-align:center">{{ c.milestone_count }}</td>
+                <td style="font-size:.7rem">
+                  {% if c.signed_by_client %}<span style="color:var(--green)">C✓</span>{% else %}<span style="color:var(--muted)">C✗</span>{% endif %}
+                  {% if c.signed_by_freelancer %}<span style="color:var(--green)">F✓</span>{% else %}<span style="color:var(--muted)">F✗</span>{% endif %}
+                </td>
+                <td><span class="tag {{ 't-active' if c.status=='active' else ('t-done' if c.status=='completed' else ('t-disputed' if c.status=='disputed' else 't-draft')) }}">{{ c.status }}</span></td>
+                <td style="color:var(--muted)">{{ c.created_at.strftime("%d %b %Y") }}</td>
+              </tr>
+              {% else %}<tr><td colspan="8" class="empty">No contracts</td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════ REVIEWS ══════════ -->
+      <div x-show="tab==='reviews'" x-cloak>
+        <div class="section-hd"><h1>Reviews</h1><p>{{ all_reviews|length }} total · {{ pending_reviews_count }} pending moderation</p></div>
+        <div class="tbl-wrap">
+          <div class="filter-bar">
+            <input type="text" x-model="rSearch" placeholder="Search reviewer / reviewee…" class="filter-inp">
+            <select x-model="rStatus" class="filter-sel">
+              <option value="">All</option>
+              <option value="pending">Pending approval</option>
+              <option value="approved">Approved</option>
+            </select>
+          </div>
+          <table class="mgmt-table">
+            <thead><tr><th>Reviewer</th><th>Reviewee</th><th>Rating</th><th>Feedback</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody>
+              {% for rv in all_reviews %}
+              <tr id="rv-row-{{ rv.id }}"
+                  x-show="(!rSearch || '{{ rv.reviewer.username }}{{ rv.reviewee.username }}'.toLowerCase().includes(rSearch.toLowerCase())) && (!rStatus || (rStatus==='pending'?{{ 'true' if not rv.is_approved else 'false' }}:{{ 'true' if rv.is_approved else 'false' }}))">
+                <td><a href="/profile/{{ rv.reviewer.username }}/" target="_blank" style="color:var(--gold)">{{ rv.reviewer.username }}</a></td>
+                <td><a href="/profile/{{ rv.reviewee.username }}/" target="_blank" style="color:var(--muted)">{{ rv.reviewee.username }}</a></td>
+                <td style="font-family:'Space Mono',monospace">{{ rv.rating }}/5</td>
+                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)">{{ rv.feedback[:80] }}{% if rv.feedback|length>80 %}…{% endif %}</td>
+                <td>{% if rv.is_approved %}<span class="tag t-active">Approved</span>{% else %}<span class="tag t-pending">Pending</span>{% endif %}</td>
+                <td style="color:var(--muted)">{{ rv.created_at.strftime("%d %b %Y") }}</td>
+                <td>
+                  <div class="ta">
+                    {% if not rv.is_approved %}
+                    <button class="btn btn-g" hx-post="/sd/moderate/review/{{ rv.id }}/approve/" hx-target="#rv-row-{{ rv.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>✓ Approve</button>
+                    {% endif %}
+                    <button class="btn btn-r" hx-post="/sd/moderate/review/{{ rv.id }}/reject/" hx-target="#rv-row-{{ rv.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>✕ Hide</button>
+                  </div>
+                </td>
+              </tr>
+              {% else %}<tr><td colspan="7" class="empty">No reviews</td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════ PAYMENTS ══════════ -->
+      <div x-show="tab==='payments'" x-cloak>
+        <div class="section-hd"><h1>Payments</h1><p>{{ all_transactions|length }} transactions · {{ open_disputes }} open disputes</p></div>
+        <div class="tbl-wrap" style="margin-bottom:1.25rem">
+          <div class="tbl-hd"><span class="tbl-title">Transactions</span><input type="text" x-model="txSearch" placeholder="Search user…" class="tbl-search"></div>
+          <table class="mgmt-table">
+            <thead><tr><th>User</th><th>Type</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+              {% for txn in all_transactions %}
+              <tr x-show="!txSearch || '{{ txn.wallet.user.username }}'.toLowerCase().includes(txSearch.toLowerCase())">
+                <td>{{ txn.wallet.user.username }}</td>
+                <td><span class="tag {{ 't-active' if txn.type=='release' else ('t-pending' if txn.type=='topup' else 't-draft') }}">{{ txn.type }}</span></td>
+                <td style="font-family:'Space Mono',monospace;font-size:.72rem;color:var(--gold)">₹{{ txn.amount|int }}</td>
+                <td><span class="tag {{ 't-active' if txn.status=='success' else ('t-disputed' if txn.status=='failed' else 't-pending') }}">{{ txn.status }}</span></td>
+                <td style="color:var(--muted)">{{ txn.created_at.strftime("%d %b %Y %H:%M") }}</td>
+              </tr>
+              {% else %}<tr><td colspan="5" class="empty">No transactions</td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="tbl-wrap">
+          <div class="tbl-hd"><span class="tbl-title">Disputes</span><span class="p-badge {{ 'alert' if open_disputes > 0 else '' }}">{{ open_disputes }} open</span></div>
+          {% for d in open_dispute_list %}
+          <div class="trow" id="dispute-row-{{ d.id }}">
+            <div class="av" style="background:var(--red)">⚡</div>
+            <div class="ti"><div class="tn">Contract #{{ d.contract.id }} — {{ d.raised_by.username }}</div><div class="tm"><span class="tag t-disputed">{{ d.status }}</span> · {{ d.reason[:60] }}{% if d.reason|length>60 %}…{% endif %}</div></div>
+            <button class="btn btn-g" hx-post="/sd/moderate/dispute/{{ d.id }}/resolve/" hx-target="#dispute-row-{{ d.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>✓ Resolve</button>
+          </div>
+          {% else %}<div class="empty">✓ No open disputes</div>{% endfor %}
+        </div>
+      </div>
+
+      <!-- ══════════ MODERATION QUEUE ══════════ -->
+      <div x-show="tab==='moderation'" x-cloak>
+        <div class="section-hd"><h1>Moderation Queue</h1><p>{{ pending_reviews_count + open_disputes }} items need action</p></div>
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-hd"><span class="panel-title">Pending Reviews</span><span class="p-badge {{ 'alert' if pending_reviews_count>0 else '' }}">{{ pending_reviews_count }}</span></div>
+            {% for rv in moderation_reviews %}
+            <div class="trow" id="mod-rv-{{ rv.id }}">
+              <div class="av">{{ rv.reviewer.initials }}</div>
+              <div class="ti"><div class="tn">{{ rv.reviewer.username }} → {{ rv.reviewee.username }}</div><div class="tm">{{ rv.rating }}/5 · {{ rv.feedback[:50] }}{% if rv.feedback|length>50 %}…{% endif %}</div></div>
+              <div class="ta">
+                <button class="btn btn-g" hx-post="/sd/moderate/review/{{ rv.id }}/approve/" hx-target="#mod-rv-{{ rv.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>✓</button>
+                <button class="btn btn-r" hx-post="/sd/moderate/review/{{ rv.id }}/reject/" hx-target="#mod-rv-{{ rv.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>✕</button>
+              </div>
+            </div>
+            {% else %}<div class="empty" style="color:var(--green)">✓ No pending reviews</div>{% endfor %}
+          </div>
+          <div class="panel">
+            <div class="panel-hd"><span class="panel-title">Open Disputes</span><span class="p-badge {{ 'alert' if open_disputes>0 else '' }}">{{ open_disputes }}</span></div>
+            {% for d in open_dispute_list %}
+            <div class="trow" id="mod-d-{{ d.id }}">
+              <div class="av" style="background:var(--red)">⚡</div>
+              <div class="ti"><div class="tn">Contract #{{ d.contract.id }} · {{ d.raised_by.username }}</div><div class="tm"><span class="tag t-disputed">{{ d.status }}</span> · {{ d.reason[:50] }}{% if d.reason|length>50 %}…{% endif %}</div></div>
+              <button class="btn btn-g" hx-post="/sd/moderate/dispute/{{ d.id }}/resolve/" hx-target="#mod-d-{{ d.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>✓ Resolve</button>
+            </div>
+            {% else %}<div class="empty" style="color:var(--green)">✓ No open disputes</div>{% endfor %}
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-hd"><span class="panel-title">Draft Jobs — Activate</span><span class="p-badge">{{ pending_jobs|length }}</span></div>
+            {% for j in pending_jobs %}
+            <div class="trow" id="mod-j-{{ j.id }}">
+              <div class="ti"><div class="tn">{{ j.title[:45] }}{% if j.title|length>45 %}…{% endif %}</div><div class="tm">by {{ j.client.username }} · <span class="tag t-draft">draft</span></div></div>
+              <div class="ta">
+                <button class="btn btn-g" hx-post="/sd/moderate/job/{{ j.id }}/activate/" hx-target="#mod-j-{{ j.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>▶ Activate</button>
+                <button class="btn btn-o" hx-post="/sd/moderate/job/{{ j.id }}/feature/" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>★ Feature</button>
+              </div>
+            </div>
+            {% else %}<div class="empty" style="color:var(--green)">✓ No draft jobs</div>{% endfor %}
+          </div>
+          <div class="panel">
+            <div class="panel-hd"><span class="panel-title">Unverified Users</span><span class="p-badge">{{ unverified_users|length }}</span></div>
+            {% for u in unverified_users %}
+            <div class="trow" id="mod-u-{{ u.id }}">
+              <div class="av">{{ u.initials }}</div>
+              <div class="ti"><div class="tn">{{ u.username }} <span class="tag t-draft">{{ u.role }}</span></div><div class="tm">Joined {{ u.date_joined.strftime("%d %b %Y") }}</div></div>
+              <div class="ta">
+                <button class="btn btn-g" hx-post="/sd/moderate/user/{{ u.id }}/verify/" hx-target="#mod-u-{{ u.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>✓ Verify</button>
+                <button class="btn btn-r" hx-post="/sd/moderate/user/{{ u.id }}/ban/" hx-target="#mod-u-{{ u.id }}" hx-swap="outerHTML" hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>⊘ Ban</button>
+              </div>
+            </div>
+            {% else %}<div class="empty" style="color:var(--green)">✓ All users verified</div>{% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ LEADERBOARD ══════════ -->
+      <div x-show="tab==='leaderboard'" x-cloak>
+        <div class="section-hd"><h1>Leaderboard</h1><p>Top performers by completed contracts</p></div>
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-hd"><span class="panel-title">Top Freelancers</span><span class="p-badge">by completed contracts</span></div>
+            {% for u in top_freelancers %}
+            <div class="trow">
+              <span style="font-family:'Space Mono',monospace;font-size:.7rem;color:{{ 'var(--gold)' if loop.index<=3 else 'var(--muted)' }};width:20px;text-align:right;font-weight:{{ '700' if loop.index<=3 else '400' }}">{{ loop.index }}</span>
+              <div class="av">{{ u.initials }}</div>
+              <div class="ti">
+                <div class="tn"><a href="/profile/{{ u.username }}/" target="_blank">{{ u.username }}</a></div>
+                <div class="tm">{% if u._profile and u._profile.title %}{{ u._profile.title }} · {% endif %}{{ u.completed_contracts }} contracts{% if u._profile and u._profile.avg_rating %} · ⭐ {{ u._profile.avg_rating }}{% endif %}</div>
+              </div>
+            </div>
+            {% else %}<div class="empty">No data yet</div>{% endfor %}
+          </div>
+          <div class="panel">
+            <div class="panel-hd"><span class="panel-title">Top Clients</span><span class="p-badge">by contracts hired</span></div>
+            {% for u in top_clients %}
+            <div class="trow">
+              <span style="font-family:'Space Mono',monospace;font-size:.7rem;color:{{ 'var(--gold)' if loop.index<=3 else 'var(--muted)' }};width:20px;text-align:right;font-weight:{{ '700' if loop.index<=3 else '400' }}">{{ loop.index }}</span>
+              <div class="av" style="background:var(--teal)">{{ u.initials }}</div>
+              <div class="ti">
+                <div class="tn">{{ u.username }}</div>
+                <div class="tm">{{ u.total_contracts }} contracts · joined {{ u.date_joined.strftime("%b %Y") }}</div>
+              </div>
+              <a href="/sd/users/user/{{ u.id }}/change/" target="_blank" class="btn btn-gh">Edit</a>
+            </div>
+            {% else %}<div class="empty">No data yet</div>{% endfor %}
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+function mc() {
+  return {
+    tab: 'overview',
+    uSearch: '', uRole: '', uStatus: '',
+    jSearch: '', jStatus: '',
+    pSearch: '', pStatus: '',
+    cSearch: '', cStatus: '',
+    rSearch: '', rStatus: '',
+    txSearch: '',
+    init() {
+      const h = location.hash.slice(1);
+      if (h) this.tab = h;
+      this.$watch('tab', v => { location.hash = v; });
+    }
+  }
+}
+function toast(msg, err=false) {
+  const el = document.createElement('div');
+  el.className = 'toast' + (err ? ' err' : '');
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+document.body.addEventListener('htmx:afterRequest', e => {
+  try {
+    const d = JSON.parse(e.detail.xhr.responseText);
+    if (d && d.msg) toast(d.msg, !d.ok);
+  } catch(_) {}
+});
+</script>
+</body>
+</html>

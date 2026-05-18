@@ -1,0 +1,66 @@
+<form
+  method="post"
+  action="{{ url('register') }}"
+  hx-post="{{ url('register') }}"
+  hx-target="#register-form-wrap"
+  hx-swap="innerHTML"
+  class="space-y-4"
+  x-data="{role: '{{ form.role.value() if form and form.role.value() else 'client' }}'}"
+>
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+  <input type="hidden" name="role" :value="role">
+
+  {% if form and form.non_field_errors() %}
+    <div class="text-sm text-red-300 mb-2">
+      {% for error in form.non_field_errors() %}
+        <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div>
+    <p class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">I want to…</p>
+    <div class="grid grid-cols-2 gap-2">
+      <button type="button" class="sp-btn-ghost role-card" :class="role==='client' ? 'selected' : ''" @click="role='client'">Hire Talent</button>
+      <button type="button" class="sp-btn-ghost role-card" :class="role==='freelancer' ? 'selected' : ''" @click="role='freelancer'">Find Work</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">First Name</label>
+      <input class="sp-field input-field w-full" type="text" name="first_name" value="{{ form.first_name.value() if form else '' }}" required>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Last Name</label>
+      <input class="sp-field input-field w-full" type="text" name="last_name" value="{{ form.last_name.value() if form else '' }}" required>
+    </div>
+  </div>
+
+  <div>
+    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Username</label>
+    <input class="sp-field input-field w-full" type="text" name="username" value="{{ form.username.value() if form else '' }}" required>
+  </div>
+
+  <div>
+    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Email</label>
+    <input class="sp-field input-field w-full" type="email" name="email" value="{{ form.email.value() if form else '' }}" required>
+  </div>
+
+  <div>
+    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Mobile</label>
+    <input class="sp-field input-field w-full" type="text" name="phone" value="{{ form.phone.value() if form else '' }}">
+  </div>
+
+  <div>
+    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Password</label>
+    <input class="sp-field input-field w-full" type="password" name="password1" required>
+  </div>
+
+  <div>
+    <label class="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Confirm password</label>
+    <input class="sp-field input-field w-full" type="password" name="password2" required>
+  </div>
+
+  <button type="submit" class="sp-btn-gold btn-auth w-full">Create Account →</button>
+</form>

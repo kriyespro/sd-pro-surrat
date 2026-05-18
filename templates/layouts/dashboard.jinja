@@ -1,0 +1,16 @@
+{% extends 'base.jinja' %}
+
+{% block content %}
+<main class="max-w-7xl mx-auto px-4 py-8">
+  <div class="grid lg:grid-cols-12 gap-5">
+    <aside class="lg:col-span-3 sp-card p-4 h-fit">
+      {% block sidebar %}
+        <p class="text-sm text-[var(--text-muted)]">Dashboard menu</p>
+      {% endblock %}
+    </aside>
+    <section class="lg:col-span-9">
+      {% block dashboard_content %}{% endblock %}
+    </section>
+  </div>
+</main>
+{% endblock %}

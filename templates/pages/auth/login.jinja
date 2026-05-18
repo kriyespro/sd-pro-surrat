@@ -1,0 +1,50 @@
+{% extends 'base.jinja' %}
+{% block title %}Login{% endblock %}
+{% block meta_desc %}Login or register on SuratPro{% endblock %}
+{% block extra_head %}
+<style>
+.logo{font-family:'Playfair Display',serif;font-size:1.55rem;font-weight:900;color:var(--white)}
+.logo span{color:var(--gold)}
+.tab-btn{flex:1;padding:0.7rem;border:none;background:transparent;color:var(--text-muted);font-size:0.88rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+</style>
+{% endblock %}
+{% block nav %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="auth-page-bg"></div>
+<div class="auth-geo-lines"></div>
+<nav class="relative z-10 flex items-center justify-between px-[5%] h-16 auth-nav-bar">
+  <a href="{{ url('home') }}" class="logo">Surat<span>Pro</span></a>
+  <a href="{{ url('home') }}" class="text-sm text-[var(--text-muted)] hover:text-[var(--gold)] transition-colors">← Back to Home</a>
+</nav>
+
+<main class="relative z-10 min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-12" x-data="{tab: '{{ tab|default('login') }}'}">
+  <div class="auth-card w-full max-w-2xl p-6 md:p-8">
+    <div class="text-center mb-6">
+      <span class="logo text-2xl">Surat<span>Pro</span></span>
+      <p class="text-[var(--text-muted)] text-sm mt-2">Surat's #1 Freelance Marketplace</p>
+    </div>
+
+    <div class="flex auth-tab-row mb-6">
+      <button type="button" class="tab-btn" :class="tab === 'login' ? 'active' : ''" @click="tab='login'">
+        Login
+      </button>
+      <button type="button" class="tab-btn" :class="tab === 'register' ? 'active' : ''" @click="tab='register'">
+        Register
+      </button>
+    </div>
+
+    <div x-show="tab === 'login'" id="login-form-wrap">
+      {% set form = login_form %}
+      {% include 'partials/_login_form.jinja' %}
+    </div>
+
+    <div x-show="tab === 'register'" id="register-form-wrap">
+      {% set form = reg_form %}
+      {% include 'partials/_register_form.jinja' %}
+    </div>
+  </div>
+</main>
+{% endblock %}

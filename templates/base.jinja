@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SuratPro{% endblock %} — Surat's #1 Freelance Marketplace</title>
+  <meta name="description" content="{% block meta_desc %}Find top freelancers in Surat for web development, design, textile, finance and more.{% endblock %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="preload" href="{{ static(static_css) }}" as="style">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"></noscript>
+  <script>
+    function normalizeStoredTheme(raw) {
+      if (!raw || raw === "cream" || raw === "light") return "light";
+      if (raw === "dark") return "dark";
+      return "light";
+    }
+
+    function applyTheme(theme) {
+      var dark = theme === "dark";
+      var root = document.documentElement;
+      var body = document.body;
+      root.classList.toggle("theme-dark", dark);
+      if (body) body.classList.toggle("theme-dark", dark);
+    }
+
+    function updateThemeLabel() {
+      var label = document.getElementById("theme-label");
+      if (!label) return;
+      var isDark = document.documentElement.classList.contains("theme-dark");
+      label.textContent = isDark ? "Dark" : "Light";
+    }
+
+    window.toggleTheme = function () {
+      var next = document.documentElement.classList.contains("theme-dark") ? "light" : "dark";
+      applyTheme(next);
+      try {
+        localStorage.setItem("suratpro_theme", next);
+      } catch (e) {}
+      updateThemeLabel();
+    };
+
+    (function () {
+      var raw = null;
+      try {
+        raw = localStorage.getItem("suratpro_theme");
+      } catch (e) {}
+      applyTheme(normalizeStoredTheme(raw));
+    })();
+
+    document.addEventListener("DOMContentLoaded", function () {
+      var raw = null;
+      try {
+        raw = localStorage.getItem("suratpro_theme");
+      } catch (e) {}
+      applyTheme(normalizeStoredTheme(raw));
+      document.querySelectorAll("[data-theme-toggle]").forEach(function (btn) {
+        btn.addEventListener("click", window.toggleTheme);
+      });
+      updateThemeLabel();
+    });
+  </script>
+  <link rel="stylesheet" href="{{ static(static_css) }}">
+  {% if not DEBUG %}<script src="https://cdn.tailwindcss.com" defer></script>{% else %}<script src="https://cdn.tailwindcss.com"></script>{% endif %}
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+  <script defer src="https://unpkg.com/htmx.org@1.9.12/dist/htmx.min.js"></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="sp-body {% block body_class %}{% endblock %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+
+  {% block nav %}
+    {% include 'components/nav.jinja' %}
+  {% endblock %}
+
+  {% block content %}{% endblock %}
+
+  {% block footer %}
+    {% include 'components/footer.jinja' %}
+  {% endblock %}
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

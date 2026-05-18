@@ -1,0 +1,10 @@
+{% for tx in transactions %}
+  <div class="grid grid-cols-4 gap-2 py-2 text-sm sp-row-divider">
+    <div>{{ tx.created_at }}</div>
+    <div>{{ tx.type }}</div>
+    <div>₹{{ tx.amount }}</div>
+    <div>{{ tx.status }}</div>
+  </div>
+{% else %}
+  <p class="text-[var(--text-muted)]">No transactions available.</p>
+{% endfor %}

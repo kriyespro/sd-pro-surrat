@@ -1,0 +1,284 @@
+{% extends 'base.jinja' %}
+{% block title %}Post a Job{% endblock %}
+{% block meta_desc %}Post a job on SuratPro{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block nav %}
+  {% include 'components/nav.jinja' %}
+{% endblock %}
+
+{% block content %}
+
+{% if gate_error %}
+<div style="max-width:860px;margin:3rem auto;padding:0 5%">
+  <div class="sp-card p-6 text-center">
+    <p class="text-lg font-semibold mb-2">Job limit reached</p>
+    <p class="text-[var(--text-muted)] mb-4">{{ gate_error }}</p>
+    <a href="{{ url('pricing') }}" class="sp-btn-gold">Upgrade plan</a>
+    <a href="{{ url('dashboard') }}" class="sp-btn-ghost ml-3">Back to dashboard</a>
+  </div>
+</div>
+{% else %}
+<div class="post-job-flow" x-data="postJob()" style="max-width:860px;margin:0 auto;padding:3rem 5%">
+
+  <!-- Page title -->
+  <div style="margin-bottom:2.5rem">
+    <span style="font-family:'Space Mono',monospace;font-size:0.68rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold)">// New Project</span>
+    <h1 style="font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:900;margin-top:0.4rem">Post a Job</h1>
+    <p style="color:var(--text-muted);font-size:0.92rem;margin-top:0.4rem">Get proposals from Surat's best freelancers within hours.</p>
+  </div>
+
+  <!-- Step indicator -->
+  <div style="display:flex;align-items:center;gap:0;margin-bottom:2.5rem;overflow-x:auto">
+    <template x-for="(s,i) in steps" :key="i">
+      <div style="display:flex;align-items:center">
+        <div style="display:flex;align-items:center;gap:0.6rem;white-space:nowrap">
+          <div class="step-dot" :class="i<step?'done':i===step?'active':'pending'" x-text="i<step?'✓':(i+1)"></div>
+          <span style="font-size:0.82rem;font-weight:600" :style="i===step?'color:var(--white)':'color:var(--text-dim)'" x-text="s"></span>
+        </div>
+        <div x-show="i<steps.length-1" class="post-job-step-line"></div>
+      </div>
+    </template>
+  </div>
+
+  <!-- STEP 0: Basics -->
+  <div x-show="step===0" class="card">
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:1.5rem">Project Basics</h2>
+    <div style="display:flex;flex-direction:column;gap:1.2rem">
+      <div>
+        <label class="field-label">Job Title *</label>
+        <input type="text" class="field" placeholder="e.g. Build a SaaS dashboard for textile inventory" x-model="form.title">
+      </div>
+      <div>
+        <label class="field-label">Category *</label>
+        <select class="field" x-model="form.category">
+          <option value="">Select a category</option>
+          <option>Web & App Development</option>
+          <option>Design & Creative</option>
+          <option>Textile & Fashion</option>
+          <option>Finance & Accounts</option>
+          <option>Content & Writing</option>
+          <option>Social & Marketing</option>
+          <option>Diamond & Jewellery</option>
+          <option>Architecture & Civil</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Job Description *</label>
+        <textarea class="field" rows="6" placeholder="Describe your project in detail. Include goals, deliverables, and any technical requirements…" x-model="form.desc"></textarea>
+        <div style="text-align:right;font-size:0.72rem;color:var(--text-dim);margin-top:0.3rem"><span x-text="form.desc.length"></span>/2000 chars</div>
+      </div>
+      <div>
+        <label class="field-label">Required Skills</label>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.6rem">
+          <template x-for="skill in form.skills" :key="skill">
+            <span class="skill-chip" x-text="skill">
+              <button @click="removeSkill(skill)">×</button>
+            </span>
+          </template>
+        </div>
+        <div style="display:flex;gap:0.6rem">
+          <input type="text" class="field" placeholder="Type a skill & press Enter" x-model="skillInput" @keydown.enter.prevent="addSkill()" style="flex:1">
+          <button type="button" class="post-job-add-btn" @click="addSkill()">Add</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:1.8rem">
+      <button class="btn-gold" @click="step=1">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 1: Budget & Timeline -->
+  <div x-show="step===1" class="card">
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:1.5rem">Budget & Timeline</h2>
+    <div style="display:flex;flex-direction:column;gap:1.5rem">
+      <!-- Pricing type -->
+      <div>
+        <label class="field-label">Pricing Type *</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
+          <div class="budget-card" :class="{'selected':form.pricingType==='fixed'}" @click="form.pricingType='fixed'">
+            <div style="font-size:1.5rem;margin-bottom:0.5rem">💰</div>
+            <div style="font-weight:600;font-size:0.92rem">Fixed Price</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem">Pay a set amount for the project</div>
+          </div>
+          <div class="budget-card" :class="{'selected':form.pricingType==='hourly'}" @click="form.pricingType='hourly'">
+            <div style="font-size:1.5rem;margin-bottom:0.5rem">⏱</div>
+            <div style="font-weight:600;font-size:0.92rem">Hourly Rate</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem">Pay per hour tracked</div>
+          </div>
+        </div>
+      </div>
+      <!-- Budget range -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div>
+          <label class="field-label" x-text="form.pricingType==='fixed' ? 'Min Budget (₹)' : 'Min Rate (₹/hr)'"></label>
+          <input type="number" class="field" placeholder="e.g. 15000" x-model="form.budgetMin">
+        </div>
+        <div>
+          <label class="field-label" x-text="form.pricingType==='fixed' ? 'Max Budget (₹)' : 'Max Rate (₹/hr)'"></label>
+          <input type="number" class="field" placeholder="e.g. 30000" x-model="form.budgetMax">
+        </div>
+      </div>
+      <!-- Deadline -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div>
+          <label class="field-label">Project Deadline</label>
+          <input type="date" class="field" x-model="form.deadline">
+        </div>
+        <div>
+          <label class="field-label">Experience Level</label>
+          <select class="field" x-model="form.experience">
+            <option>Entry Level</option>
+            <option>Mid Level</option>
+            <option>Expert</option>
+          </select>
+        </div>
+      </div>
+      <!-- Milestones -->
+      <div>
+        <label class="field-label">Payment Milestones</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem">
+          <div class="budget-card" :class="{'selected':form.milestones==='single'}" @click="form.milestones='single'">
+            <div style="font-weight:600;font-size:0.88rem">Single Payment</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">Pay full amount at completion</div>
+          </div>
+          <div class="budget-card" :class="{'selected':form.milestones==='multiple'}" @click="form.milestones='multiple'">
+            <div style="font-weight:600;font-size:0.88rem">Multiple Milestones</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">Pay in stages as work progresses</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:1.8rem">
+      <button class="btn-ghost" @click="step=0">← Back</button>
+      <button class="btn-gold" @click="step=2">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Preferences -->
+  <div x-show="step===2" class="card">
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:1.5rem">Preferences</h2>
+    <div style="display:flex;flex-direction:column;gap:1.2rem">
+      <div>
+        <label class="field-label">Location Preference</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.6rem">
+          <div class="budget-card" :class="{'selected':form.location==='surat'}" @click="form.location='surat'" style="text-align:center;padding:0.8rem">
+            <div>📍</div><div style="font-size:0.8rem;font-weight:600;margin-top:0.3rem">Surat Only</div>
+          </div>
+          <div class="budget-card" :class="{'selected':form.location==='gujarat'}" @click="form.location='gujarat'" style="text-align:center;padding:0.8rem">
+            <div>🏙️</div><div style="font-size:0.8rem;font-weight:600;margin-top:0.3rem">Gujarat</div>
+          </div>
+          <div class="budget-card" :class="{'selected':form.location==='remote'}" @click="form.location='remote'" style="text-align:center;padding:0.8rem">
+            <div>🌐</div><div style="font-size:0.8rem;font-weight:600;margin-top:0.3rem">Remote OK</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label class="field-label">Visibility</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem">
+          <div class="budget-card" :class="{'selected':form.visibility==='public'}" @click="form.visibility='public'">
+            <div style="font-weight:600;font-size:0.88rem">🌐 Public</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">All freelancers can see & apply</div>
+          </div>
+          <div class="budget-card" :class="{'selected':form.visibility==='invite'}" @click="form.visibility='invite'">
+            <div style="font-weight:600;font-size:0.88rem">🔒 Invite Only</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">Only invited freelancers can apply</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label class="field-label">Attachments (optional)</label>
+        <div style="border:2px dashed var(--border-strong);border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s" @dragover.prevent @drop.prevent="addFile($event)" @click="$refs.fileInput.click()">
+          <div style="font-size:2rem;margin-bottom:0.5rem">📎</div>
+          <div style="font-size:0.88rem;color:var(--text-muted)">Drag & drop files or click to browse</div>
+          <div style="font-size:0.75rem;color:var(--text-dim);margin-top:0.3rem">PDF, DOC, PNG, JPG — Max 10MB each</div>
+          <input type="file" x-ref="fileInput" style="display:none" multiple @change="addFile($event)">
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:1.8rem">
+      <button class="btn-ghost" @click="step=1">← Back</button>
+      <button class="btn-gold" @click="step=3">Preview & Post →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Preview -->
+  <div x-show="step===3" class="card">
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:1.5rem">Review & Post</h2>
+    <div style="background:var(--chip-bg);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
+      <div style="font-size:1.1rem;font-weight:600;margin-bottom:0.5rem" x-text="form.title||'Untitled Project'"></div>
+      <div style="font-size:0.82rem;color:var(--gold);margin-bottom:0.8rem" x-text="form.category||'No category'"></div>
+      <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.65;margin-bottom:1rem" x-text="form.desc||'No description'"></p>
+      <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:0.82rem;color:var(--text-muted)">
+        <span>💰 <strong style="color:var(--white)" x-text="'₹'+form.budgetMin+' – ₹'+form.budgetMax"></strong></span>
+        <span>⏱ <strong style="color:var(--white)" x-text="form.pricingType"></strong></span>
+        <span>📅 <strong style="color:var(--white)" x-text="form.deadline||'Flexible'"></strong></span>
+        <span>🎯 <strong style="color:var(--white)" x-text="form.experience"></strong></span>
+      </div>
+    </div>
+    <div style="background:rgba(62,202,143,0.06);border:1px solid rgba(62,202,143,0.2);border-radius:10px;padding:1rem;margin-bottom:1.5rem;font-size:0.85rem;color:var(--text-muted)">
+      🎉 Your job will be live immediately. Expect <strong style="color:var(--white)">5–15 proposals</strong> within <strong style="color:var(--white)">2 hours</strong> from verified Surat freelancers.
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <button class="btn-ghost" @click="step=2">← Edit</button>
+      <button class="btn-gold" @click="submitJob()" :disabled="posting">
+        <span x-show="!posting">🚀 Post Job — It's Free</span>
+        <span x-show="posting">Posting…</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div x-show="step===4" style="text-align:center;padding:3rem 1rem">
+    <div style="font-size:4rem;margin-bottom:1rem">🎉</div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;margin-bottom:0.8rem">Job Posted Successfully!</h2>
+    <p style="color:var(--text-muted);font-size:0.95rem;max-width:420px;margin:0 auto 2rem">Your project is now live. Sit back while Surat's best freelancers send you proposals.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <a :href="jobId ? '/jobs/'+jobId+'/' : '/dashboard/?page=jobs'" class="btn-gold" style="text-decoration:none">View Job →</a>
+      <a href="/dashboard/?page=jobs" class="btn-ghost" style="text-decoration:none">My Jobs</a>
+      <button class="btn-ghost" @click="resetForm(); step=0; jobId=null;">Post Another</button>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+<script>
+function postJob() {
+  return {
+    step: 0, posting: false, jobId: null,
+    steps: ['Basics','Budget','Preferences','Review'],
+    skillInput: '',
+    form: { title:'', category:'', desc:'', skills:[], pricingType:'fixed', budgetMin:'', budgetMax:'', deadline:'', experience:'Mid Level', milestones:'single', location:'surat', visibility:'public' },
+    addSkill() { const s=this.skillInput.trim(); if(s && !this.form.skills.includes(s)) this.form.skills.push(s); this.skillInput=''; },
+    removeSkill(s) { this.form.skills = this.form.skills.filter(x=>x!==s); },
+    addFile(e) { console.log('Files:', e.dataTransfer ? e.dataTransfer.files : e.target.files); },
+    async submitJob() {
+      this.posting = true;
+      try {
+        const res = await fetch('/jobs/post/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || ''
+          },
+          body: JSON.stringify(this.form)
+        });
+        const data = await res.json();
+        if (data.ok) {
+          this.jobId = data.job_id;
+          this.step = 4;
+        } else {
+          alert('Error: ' + (data.error || 'Could not post job'));
+        }
+      } catch(e) {
+        alert('Network error. Please try again.');
+      } finally {
+        this.posting = false;
+      }
+    },
+    resetForm() { this.jobId=null; this.form={ title:'', category:'', desc:'', skills:[], pricingType:'fixed', budgetMin:'', budgetMax:'', deadline:'', experience:'Mid Level', milestones:'single', location:'surat', visibility:'public' }; }
+  }
+}
+</script>
+{% endblock %}

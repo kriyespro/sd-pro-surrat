@@ -1,0 +1,9 @@
+{% for plan in plans %}
+  <article class="sp-card p-4 mb-3">
+    <h3 class="font-semibold text-lg">{{ plan.name }}</h3>
+    <p class="text-sm text-[var(--text-muted)] mt-1">₹{{ plan.price_monthly }}/month • ₹{{ plan.price_yearly }}/year</p>
+    <p class="text-sm mt-2">Commission: {{ plan.commission_rate }}%</p>
+  </article>
+{% else %}
+  <p class="text-[var(--text-muted)]">Plans will appear here after setup.</p>
+{% endfor %}

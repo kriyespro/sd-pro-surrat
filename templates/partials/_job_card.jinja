@@ -1,0 +1,16 @@
+{% for job in jobs %}
+  <article class="sp-card p-4 mb-3">
+    <div class="flex justify-between items-start gap-3">
+      <div>
+        <h3 class="font-semibold text-lg">{{ job.title }}</h3>
+        <p class="text-sm text-[var(--text-muted)] mt-1">{{ job.description[:160] }}{% if job.description|length > 160 %}...{% endif %}</p>
+      </div>
+      <span class="sp-badge">{{ job.status }}</span>
+    </div>
+    <div class="text-sm mt-3 text-[var(--text-muted)]">
+      {{ job.pricing_type }} • ₹{{ job.budget_min }} - ₹{{ job.budget_max }}
+    </div>
+  </article>
+{% else %}
+  <p class="text-[var(--text-muted)]">No jobs posted yet.</p>
+{% endfor %}

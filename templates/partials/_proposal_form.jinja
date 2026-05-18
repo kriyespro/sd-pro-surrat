@@ -1,0 +1,25 @@
+<form class="sp-card p-4 space-y-3"
+      {% if job %}hx-post="{{ url('propose_to_job', job_id=job.id) }}"{% endif %}
+      hx-target="#proposal-result"
+      hx-swap="innerHTML"
+      enctype="multipart/form-data">
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+  <h3 class="font-semibold">Send Proposal</h3>
+  <textarea class="sp-field w-full" rows="4" name="cover_letter" placeholder="Cover letter — why you're the right fit"></textarea>
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class="text-xs text-[var(--text-muted)]">Rate (₹)</label>
+      <input class="sp-field w-full" type="number" name="proposed_rate" placeholder="e.g. 5000">
+    </div>
+    <div>
+      <label class="text-xs text-[var(--text-muted)]">Delivery days</label>
+      <input class="sp-field w-full" type="number" name="delivery_days" placeholder="e.g. 7">
+    </div>
+  </div>
+  <div>
+    <label class="text-xs text-[var(--text-muted)]">Attachment (optional)</label>
+    <input class="sp-field w-full mt-1" type="file" name="attachment" accept=".pdf,.doc,.docx,.zip,.png,.jpg">
+  </div>
+  <div id="proposal-result"></div>
+  <button type="submit" class="sp-btn-gold w-full">Submit proposal</button>
+</form>

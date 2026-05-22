@@ -73,7 +73,8 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:8000/admin/)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:8000/sd/analytics/)",
       "Bash(curl -s -c /tmp/sp_admin.txt http://127.0.0.1:8000/auth/login/)",
-      "Bash(curl -s -b /tmp/sp_admin.txt http://127.0.0.1:8000/admin/)"
+      "Bash(curl -s -b /tmp/sp_admin.txt http://127.0.0.1:8000/admin/)",
+      "Bash(xargs cat)"
     ]
   }
 }

@@ -16,7 +16,7 @@ echo "==> Collecting static files (gzip + manifest via WhiteNoise)..."
 python manage.py collectstatic --noinput
 
 echo "==> Seeding plans..."
-python manage.py seed_plans
+python manage.py seed_plans || echo "WARN: seed_plans skipped (non-fatal)"
 
 echo "==> Starting Gunicorn..."
 exec gunicorn core.wsgi:application -c gunicorn.conf.py

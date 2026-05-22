@@ -108,7 +108,7 @@ if config("DATABASE_URL", default=""):
         DATABASES["default"] = dj_database_url.parse(
             config("DATABASE_URL"),
             conn_max_age=600,
-            ssl_require=not DEBUG,
+            ssl_require=config("DATABASE_SSL_REQUIRE", default=False, cast=bool),
         )
 
 # ── Password validation ───────────────────────────────────────────────────────

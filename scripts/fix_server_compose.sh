@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Run on VPS if docker-compose.prod.yml is broken (e.g. bad sed on nginx ports)
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+cat > docker-compose.prod.yml << 'EOF'
+# Production — port 8787 only (no host 80/443)
+# docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+
+name: suratpro
+
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    expose:
+      - "8000"
+    volumes:
+      - static_data:/app/staticfiles
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: /app/entrypoint.sh
+    networks:
+      - suratpro_net
+
+  celery:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    command: celery -A core worker -l info --concurrency=2
+    volumes:
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - suratpro_net
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-suratpro}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.prod}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-suratpro}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - suratpro_net
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - suratpro_net
+
+  nginx:
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    ports:
+      - "8787:80"
+    volumes:
+      - ./deploy/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_data:/app/staticfiles:ro
+      - media_data:/app/media:ro
+    depends_on:
+      - web
+    networks:
+      - suratpro_net
+
+volumes:
+  pg_data:
+  redis_data:
+  static_data:
+  media_data:
+
+networks:
+  suratpro_net:
+    name: suratpro_net
+EOF
+
+echo "Fixed docker-compose.prod.yml — nginx port 8787:80 only"
+docker compose -f docker-compose.prod.yml config >/dev/null && echo "YAML valid."

@@ -25,13 +25,14 @@ sleep 8
 
 echo "==> Smoke checks..."
 for path in / /auth/login/; do
-  code=$(curl -s -o /dev/null -w "%{http_code}" -H "Host: suratpro.com" "http://127.0.0.1${path}" || echo "000")
+  code=$(curl -s -o /dev/null -w "%{http_code}" -H "Host: suratpro.com" "http://127.0.0.1:8787${path}" || echo "000")
   echo "  GET ${path} -> ${code}"
 done
 
 echo ""
 echo "Deploy complete. Open:"
-echo "  https://suratpro.com"
-echo "  https://62.72.43.194"
+echo "  http://127.0.0.1:8787"
+echo "  http://62.72.43.194:8787"
+echo "  https://suratpro.com (if main nginx proxies to :8787)"
 echo ""
 echo "Logs: docker compose -f docker-compose.prod.yml logs -f web nginx"

@@ -1,8 +1,9 @@
 # SuratPro — Full Docker Deployment Guide
 
 **Server IP:** `62.72.43.194`  
+**App port:** `8787` (does not use host 80/443 — safe with other Docker Django apps)  
 **Domain:** `suratpro.com` / `www.suratpro.com`  
-**Stack:** Docker · PostgreSQL · Redis · Gunicorn · Celery · Nginx
+**Stack:** Docker project `suratpro` · PostgreSQL · Redis · Gunicorn · Celery · Nginx
 
 ---
 
@@ -85,6 +86,7 @@ grep DATABASE_URL .env.prod
 In [Google Cloud Console](https://console.cloud.google.com/) → Credentials → OAuth client, add:
 
 ```
+http://62.72.43.194:8787/auth/google/callback/
 https://suratpro.com/auth/google/callback/
 https://www.suratpro.com/auth/google/callback/
 https://62.72.43.194/auth/google/callback/
@@ -144,8 +146,15 @@ curl -I -H "Host: suratpro.com" http://127.0.0.1/auth/login/
 
 Open in browser:
 
-- http://62.72.43.194/
-- https://suratpro.com/ (after SSL)
+- **http://62.72.43.194:8787/** ← main URL on shared server
+- https://suratpro.com/ (only if your main nginx proxies to port 8787)
+
+### Multi-app server notes
+
+- Docker project name: **`suratpro`** (containers: `suratpro-web-1`, etc.)
+- **No** host ports for Postgres/Redis (internal only — no clash with other apps)
+- Only **8787** is published on the host
+- List SuratPro containers: `docker ps --filter "name=suratpro"`
 
 ---
 

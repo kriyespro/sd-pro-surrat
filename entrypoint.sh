@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+export PYTHONPATH=/app
 
 echo "==> Waiting for database and Redis..."
 python scripts/wait_for_services.py

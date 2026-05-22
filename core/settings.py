@@ -110,6 +110,8 @@ if config("DATABASE_URL", default=""):
             conn_max_age=600,
             ssl_require=config("DATABASE_SSL_REQUIRE", default=False, cast=bool),
         )
+        if not config("DATABASE_SSL_REQUIRE", default=False, cast=bool):
+            DATABASES["default"].setdefault("OPTIONS", {})["sslmode"] = "disable"
 
 # ── Password validation ───────────────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [

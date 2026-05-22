@@ -9,7 +9,13 @@
    - `POSTGRES_PASSWORD` — strong password
    - `DATABASE_URL` — must use the same password: `postgres://postgres:PASSWORD@db:5432/suratpro`
 2. Point DNS: `suratpro.com` and `www` → `62.72.43.194`
-3. Install Docker + Docker Compose on the VPS
+3. **Google OAuth** — in [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials, add **Authorized redirect URIs**:
+   - `https://suratpro.com/auth/google/callback/`
+   - `https://www.suratpro.com/auth/google/callback/`
+   - `https://62.72.43.194/auth/google/callback/`
+   - `http://127.0.0.1:8000/auth/google/callback/` (local dev)
+4. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env.prod` (from `.key-google` or Console).
+5. Install Docker + Docker Compose on the VPS
 
 ## 2) Deploy (one command)
 

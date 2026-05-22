@@ -146,6 +146,11 @@ RAZORPAY_USE_DUMMY = config('RAZORPAY_USE_DUMMY', default=True, cast=bool)
 SITE_NAME = 'SuratPro'
 SITE_TAGLINE = "Surat's #1 Freelance Marketplace"
 
+# ── Google OAuth ──────────────────────────────────────────────────────────────
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
+GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')
+GOOGLE_REDIRECT_URI = config('GOOGLE_REDIRECT_URI', default='')
+
 # ── Production/Infra toggles ──────────────────────────────────────────────────
 SECURE_SSL_REDIRECT = config("SECURE_SSL_REDIRECT", default=not DEBUG, cast=bool)
 SESSION_COOKIE_SECURE = config("SESSION_COOKIE_SECURE", default=not DEBUG, cast=bool)

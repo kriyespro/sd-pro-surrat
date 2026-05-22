@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 from .models import User, FreelancerProfile
 from .forms import RegisterForm, LoginForm, FreelancerProfileForm, UserProfileForm, OnboardingStep1Form, OnboardingFreelancerForm
 from .services import build_dashboard_context, resolve_dashboard_page
+from . import google_auth
 
 
 def home(request):
@@ -55,6 +56,50 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
+
+
+def google_login_start(request):
+    if not google_auth.google_oauth_enabled():
+        messages.error(request, "Google sign-in is not configured.")
+        return redirect("login")
+    state = google_auth.new_oauth_state()
+    request.session["google_oauth_state"] = state
+    request.session["google_oauth_next"] = request.GET.get("next", "/dashboard/")
+    return redirect(google_auth.authorization_url(request, state))
+
+
+def google_callback(request):
+    if not google_auth.google_oauth_enabled():
+        messages.error(request, "Google sign-in is not configured.")
+        return redirect("login")
+
+    if request.GET.get("error"):
+        messages.error(request, "Google sign-in was cancelled.")
+        return redirect("login")
+
+    state = request.GET.get("state", "")
+    if state != request.session.pop("google_oauth_state", None):
+        messages.error(request, "Invalid sign-in session. Please try again.")
+        return redirect("login")
+
+    code = request.GET.get("code")
+    if not code:
+        messages.error(request, "Google did not return an authorization code.")
+        return redirect("login")
+
+    try:
+        token_data = google_auth.exchange_code(request, code)
+        userinfo = google_auth.fetch_userinfo(token_data["access_token"])
+        user, created = google_auth.get_or_create_user_from_google(userinfo)
+    except Exception:
+        messages.error(request, "Could not sign in with Google. Please try again.")
+        return redirect("login")
+
+    login(request, user)
+    next_url = request.session.pop("google_oauth_next", "/dashboard/")
+    if created or not user.onboarding_complete:
+        return redirect("onboarding")
+    return redirect(next_url)
 
 
 def profile_view(request, username):

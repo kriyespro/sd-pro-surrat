@@ -5,6 +5,7 @@ whitenoise
 pillow
 python-decouple
 razorpay
+requests
 dj-database-url
 psycopg[binary]
 redis

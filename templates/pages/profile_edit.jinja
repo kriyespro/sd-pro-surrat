@@ -16,7 +16,7 @@
       <h2 class="font-semibold text-lg">Basic details</h2>
       <div class="grid md:grid-cols-2 gap-4">
         {% for field in user_form %}
-          <div class="{% if field.name == 'bio' %}md:col-span-2{% endif %}">
+          <div class="{% if field.name in ['bio', 'profile_summary'] %}md:col-span-2{% endif %}">
             <label class="block text-sm mb-1">{{ field.label }}</label>
             {{ field }}
             {% if field.errors %}

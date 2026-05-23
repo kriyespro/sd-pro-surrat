@@ -39,7 +39,7 @@ def browse(request):
             "name": fl.user.get_full_name() or fl.user.username,
             "initials": fl.user.initials,
             "title": fl.title or "Freelancer",
-            "bio": fl.user.bio or "Top-rated professional from Surat.",
+            "bio": fl.user.profile_summary or fl.user.bio or "Top-rated professional from Surat.",
             "tags": [s.name for s in fl.skills.all()[:4]],
             "rate": float(fl.hourly_rate or 0),
             "rating": float(fl.avg_rating or 0),

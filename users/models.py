@@ -11,6 +11,7 @@ class User(AbstractUser):
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, default='Surat')
     bio = models.TextField(blank=True)
+    profile_summary = models.TextField(blank=True)
     is_verified = models.BooleanField(default=False)
     onboarding_complete = models.BooleanField(default=False)
     referral_code = models.CharField(max_length=20, unique=True, blank=True)

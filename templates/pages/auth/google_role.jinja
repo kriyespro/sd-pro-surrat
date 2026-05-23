@@ -1,0 +1,166 @@
+{% extends 'base.jinja' %}
+{% block title %}Choose Your Role — SuratPro{% endblock %}
+{% block nav %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block extra_head %}
+<style>
+.role-page-bg {
+  position: fixed; inset: 0; z-index: 0;
+  background: radial-gradient(ellipse 80% 60% at 20% 50%, rgba(13,110,110,0.18) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 50% at 80% 40%, rgba(232,168,48,0.10) 0%, transparent 55%),
+              var(--dark);
+}
+.role-card {
+  position: relative;
+  background: var(--mid);
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+}
+.role-card:hover {
+  border-color: var(--border-gold);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+}
+.role-card.selected {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+  box-shadow: 0 0 0 4px rgba(232,168,48,0.15);
+}
+.role-card .icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+.role-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+.role-card p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.role-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.role-card ul li {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.role-card ul li::before {
+  content: '✓';
+  color: var(--gold);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.role-card.selected h2,
+.role-card.selected p,
+.role-card.selected ul li { color: var(--white); }
+
+@media (max-width: 640px) {
+  .role-grid { grid-template-columns: 1fr !important; }
+  .role-card { padding: 2rem 1.5rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="role-page-bg"></div>
+
+<nav style="position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:0 5%;height:64px">
+  <a href="{{ url('home') }}" style="font-family:'Playfair Display',serif;font-size:1.55rem;font-weight:900;color:var(--white);text-decoration:none">Surat<span style="color:var(--gold)">Pro</span></a>
+</nav>
+
+<main style="position:relative;z-index:10;min-height:calc(100vh - 64px);display:flex;align-items:center;justify-content:center;padding:2rem 5%">
+  <div style="width:100%;max-width:760px">
+
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:2.5rem">
+      <!-- Google avatar / initials -->
+      <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#0D6E6E,#E8A830);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--dark);margin:0 auto 1rem;border:3px solid var(--border-gold)">
+        {{ user.initials }}
+      </div>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.4rem">Welcome, <strong style="color:var(--white)">{{ user.get_full_name() or user.email }}</strong></p>
+      <h1 style="font-family:'Playfair Display',serif;font-size:clamp(1.6rem,3.5vw,2.2rem);font-weight:900;line-height:1.15">
+        How will you use <em style="font-style:italic;color:var(--gold)">SuratPro</em>?
+      </h1>
+      <p style="color:var(--text-muted);font-size:0.88rem;margin-top:0.5rem">Pick your role — you can update it later in settings.</p>
+    </div>
+
+    <!-- Role cards -->
+    <form method="post" action="{{ url('google_role_select') }}" x-data="{ selected: '' }">
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+      <input type="hidden" name="role" id="role-hidden" value="">
+
+      <div class="role-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+
+        <!-- CLIENT -->
+        <button type="button"
+          class="role-card"
+          :class="selected === 'client' ? 'selected' : ''"
+          @click="selected='client'; document.getElementById('role-hidden').value='client'">
+          <span class="icon">🏢</span>
+          <h2>Hire Talent</h2>
+          <p>Post jobs and find skilled freelancers in Surat</p>
+          <ul>
+            <li>Post unlimited jobs</li>
+            <li>Browse 500+ verified freelancers</li>
+            <li>Secure escrow payments</li>
+            <li>Track milestones & deliverables</li>
+          </ul>
+        </button>
+
+        <!-- FREELANCER -->
+        <button type="button"
+          class="role-card"
+          :class="selected === 'freelancer' ? 'selected' : ''"
+          @click="selected='freelancer'; document.getElementById('role-hidden').value='freelancer'">
+          <span class="icon">💼</span>
+          <h2>Find Work</h2>
+          <p>Showcase your skills and get hired by top businesses</p>
+          <ul>
+            <li>Build a professional profile</li>
+            <li>Apply to curated local jobs</li>
+            <li>Get paid securely via escrow</li>
+            <li>Grow your reputation with reviews</li>
+          </ul>
+        </button>
+
+      </div>
+
+      <div style="text-align:center">
+        <button type="submit"
+          :disabled="!selected"
+          :style="selected ? 'opacity:1;cursor:pointer' : 'opacity:0.45;cursor:not-allowed'"
+          class="sp-btn-gold"
+          style="padding:0.85rem 3rem;font-size:1rem;transition:opacity 0.2s">
+          Continue →
+        </button>
+        <p style="margin-top:1rem;font-size:0.75rem;color:var(--text-muted)">
+          Select a role above to continue
+        </p>
+      </div>
+    </form>
+
+  </div>
+</main>
+{% endblock %}

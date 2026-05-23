@@ -1,5 +1,4 @@
 """Google OAuth 2.0 — login / sign-up."""
-import logging
 import secrets
 import urllib.parse
 
@@ -8,8 +7,6 @@ from django.conf import settings
 from django.urls import reverse
 
 from .models import User
-
-log = logging.getLogger(__name__)
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -23,13 +20,10 @@ def google_oauth_enabled():
 
 def build_redirect_uri(request):
     if getattr(settings, "GOOGLE_REDIRECT_URI", ""):
-        uri = settings.GOOGLE_REDIRECT_URI
-    else:
-        scheme = "https" if request.is_secure() or not settings.DEBUG else request.scheme
-        path = reverse("google_callback")
-        uri = f"{scheme}://{request.get_host()}{path}"
-    log.warning("GOOGLE OAuth redirect_uri = %s", uri)
-    return uri
+        return settings.GOOGLE_REDIRECT_URI
+    scheme = "https" if request.is_secure() or not settings.DEBUG else request.scheme
+    path = reverse("google_callback")
+    return f"{scheme}://{request.get_host()}{path}"
 
 
 def authorization_url(request, state):

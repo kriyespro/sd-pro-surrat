@@ -60,15 +60,6 @@ def logout_view(request):
     return redirect('home')
 
 
-def google_debug_uri(request):
-    """Temporary debug — shows the exact redirect_uri we send to Google."""
-    uri = google_auth.build_redirect_uri(request)
-    return HttpResponse(
-        f"<pre>redirect_uri = {uri}\n\nAdd this EXACTLY to Google Console → Authorized redirect URIs\n\nAlso set in .env.prod:\nGOOGLE_REDIRECT_URI={uri}</pre>",
-        content_type="text/html"
-    )
-
-
 def google_login_start(request):
     if not google_auth.google_oauth_enabled():
         messages.error(request, "Google sign-in is not configured.")
@@ -108,9 +99,29 @@ def google_callback(request):
 
     login(request, user)
     next_url = request.session.pop("google_oauth_next", "/dashboard/")
-    if created or not user.onboarding_complete:
+    if created:
+        request.session["google_needs_role"] = True
+        return redirect("google_role_select")
+    if not user.onboarding_complete:
         return redirect("onboarding")
     return redirect(next_url)
+
+
+@login_required
+def google_role_select(request):
+    if not request.session.get("google_needs_role"):
+        return redirect("dashboard")
+    if request.method == "POST":
+        role = request.POST.get("role", "client")
+        if role not in ("client", "freelancer"):
+            role = "client"
+        request.user.role = role
+        request.user.save(update_fields=["role"])
+        request.session.pop("google_needs_role", None)
+        return redirect("onboarding")
+    return render(request, "pages/auth/google_role.jinja", {
+        "user": request.user,
+    })
 
 
 def profile_view(request, username):

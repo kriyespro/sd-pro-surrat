@@ -74,7 +74,12 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:8000/sd/analytics/)",
       "Bash(curl -s -c /tmp/sp_admin.txt http://127.0.0.1:8000/auth/login/)",
       "Bash(curl -s -b /tmp/sp_admin.txt http://127.0.0.1:8000/admin/)",
-      "Bash(xargs cat)"
+      "Bash(xargs cat)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(grep -E '\\\\.\\(html|css|js|py|tsx|ts|jsx\\)$')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/)"
     ]
   }
 }

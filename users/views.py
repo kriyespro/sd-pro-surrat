@@ -40,16 +40,18 @@ def register_view(request):
 
 def login_view(request):
     form = LoginForm(request)
+    next_url = request.GET.get('next') or request.POST.get('next', '')
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             login(request, form.get_user())
+            redirect_to = next_url if next_url and next_url.startswith('/') else '/dashboard/'
             if request.headers.get('HX-Request'):
-                return HttpResponse('<script>window.location="/dashboard/"</script>')
-            return redirect('dashboard')
+                return HttpResponse(f'<script>window.location="{redirect_to}"</script>')
+            return redirect(redirect_to)
         if request.headers.get('HX-Request'):
-            return render(request, 'partials/_login_form.jinja', {'form': form})
-    return render(request, 'pages/auth/login.jinja', {'login_form': form, 'tab': 'login'})
+            return render(request, 'partials/_login_form.jinja', {'form': form, 'next': next_url})
+    return render(request, 'pages/auth/login.jinja', {'login_form': form, 'tab': 'login', 'next': next_url})
 
 
 @require_POST

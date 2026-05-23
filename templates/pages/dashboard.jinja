@@ -75,7 +75,7 @@
       {# ——— Overview ——— #}
       <div x-show="page==='overview'" x-cloak>
         {% if request.user.is_client %}
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.8rem">
+        <div class="dash-stat-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.8rem">
           <div class="stat-card">
             <span style="font-size:0.72rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Active jobs</span>
             <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--white);margin-top:0.5rem">{{ dash_stats.active_jobs }}</div>
@@ -97,7 +97,7 @@
           </div>
         </div>
         {% else %}
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.8rem">
+        <div class="dash-stat-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.8rem">
           <div class="stat-card">
             <span style="font-size:0.72rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Pending bids</span>
             <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--gold);margin-top:0.5rem">{{ dash_stats.pending_bids }}</div>
@@ -117,7 +117,7 @@
         </div>
         {% endif %}
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem">
           <div style="background:var(--mid);border:1px solid var(--border);border-radius:14px;overflow:hidden">
             <div style="padding:1.2rem 1.4rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
               <span style="font-weight:600;font-size:0.95rem">{% if request.user.is_client %}Recent jobs{% else %}Latest proposals{% endif %}</span>

@@ -34,6 +34,8 @@ html.theme-dark .fl-tag:hover{background:rgba(13,110,110,0.35);border-color:rgba
 .range-input{width:100%;accent-color:var(--gold);cursor:pointer}
 .select-field{width:100%;background:var(--input-bg);border:1.5px solid var(--input-border);border-radius:8px;padding:0.6rem 0.8rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;cursor:pointer}
 .select-field:focus{border-color:var(--gold)}
+@media(max-width:900px){.browse-layout{grid-template-columns:1fr!important}.browse-filter-aside{display:none}.browse-filter-aside.open{display:block}}
+@media(max-width:640px){.browse-layout{padding:1rem 4%!important}}
 </style>
 {% endblock %}
 
@@ -42,15 +44,21 @@ html.theme-dark .fl-tag:hover{background:rgba(13,110,110,0.35);border-color:rgba
 {% endblock %}
 
 {% block content %}
-<!-- NAV -->
-
-
 <!-- PAGE -->
-<div x-data="browseApp()">
-<div style="display:grid;grid-template-columns:280px 1fr;gap:2rem;padding:2rem 5%;max-width:1400px;margin:0 auto">
+<div x-data="Object.assign(browseApp(),{filtersOpen:false})">
+
+<!-- Mobile filter toggle -->
+<div style="display:none;padding:0.75rem 4%;border-bottom:1px solid var(--border)" class="browse-filter-btn-wrap">
+  <button @click="filtersOpen=!filtersOpen" class="btn-outline" style="width:100%;justify-content:center">
+    <span x-text="filtersOpen ? '✕ Close Filters' : '⚙ Filters'"></span>
+  </button>
+</div>
+<style>@media(max-width:900px){.browse-filter-btn-wrap{display:block!important}}</style>
+
+<div class="browse-layout" style="display:grid;grid-template-columns:280px 1fr;gap:2rem;padding:2rem 5%;max-width:1400px;margin:0 auto">
 
   <!-- FILTER SIDEBAR -->
-  <aside>
+  <aside class="browse-filter-aside" :class="filtersOpen ? 'open' : ''">
     <div class="filter-panel">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
         <span style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700">Filters</span>

@@ -51,6 +51,7 @@
 
     <div x-show="tab === 'login'" id="login-form-wrap">
       {% set form = login_form %}
+      {% set next = next %}
       {% include 'partials/_login_form.jinja' %}
     </div>
 

@@ -128,6 +128,40 @@ html.theme-dark ::-webkit-scrollbar-thumb { background: var(--teal); }
   border-bottom: 1px solid var(--border-gold);
   box-shadow: var(--shadow-sm);
 }
+.sp-nav-links { display: flex; align-items: center; gap: 1.5rem; }
+.sp-nav-right { display: flex; gap: 0.7rem; align-items: center; }
+.sp-hamburger {
+  display: none; flex-direction: column; gap: 5px;
+  cursor: pointer; padding: 6px; background: none; border: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.sp-hamburger span {
+  display: block; width: 22px; height: 2px;
+  background: var(--white); border-radius: 2px; transition: all 0.3s;
+}
+.sp-hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.sp-hamburger.open span:nth-child(2) { opacity: 0; }
+.sp-hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+.sp-mobile-nav {
+  display: none; position: fixed; top: 64px; left: 0; right: 0; z-index: 99;
+  background: var(--dark2); border-bottom: 1px solid var(--border-gold);
+  padding: 1.2rem 5% 1.8rem; flex-direction: column; gap: 0;
+  animation: spNavSlide 0.22s ease;
+}
+.sp-mobile-nav.open { display: flex; }
+@keyframes spNavSlide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.sp-mobile-nav-link {
+  display: block; padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted); font-size: 0.95rem; font-weight: 500;
+  text-decoration: none; transition: color 0.2s;
+}
+.sp-mobile-nav-link:last-of-type { border-bottom: none; }
+.sp-mobile-nav-link:hover { color: var(--gold); }
+.sp-mobile-nav-cta { display: flex; gap: 0.75rem; padding-top: 1.1rem; flex-wrap: wrap; }
 .sp-logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 900; text-decoration: none; color: var(--white); }
 .sp-logo span { color: var(--gold); }
 .sp-nav-link {
@@ -1275,4 +1309,61 @@ html.theme-dark .pricing-save-pill {
     color-mix(in srgb, var(--gold) 12%, transparent) 0%,
     transparent 70%
   );
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE — Mobile & Tablet
+   ═══════════════════════════════════════ */
+
+/* ── Nav ── */
+@media (max-width: 768px) {
+  .sp-nav-links, .sp-nav-right { display: none; }
+  .sp-hamburger { display: flex; }
+  #theme-label { display: none; }
+}
+
+/* ── Dashboard layout ── */
+@media (max-width: 900px) {
+  .dash-layout { flex-direction: column; }
+  .sidebar {
+    width: 100%; min-height: unset; position: static;
+    border-right: none; border-bottom: 1px solid var(--border);
+    flex-direction: row; flex-wrap: wrap; align-items: center;
+  }
+  .sidebar-logo { padding: 0.75rem 1rem; border-bottom: none; border-right: 1px solid var(--border); }
+  .sidebar nav { flex-direction: row !important; flex-wrap: wrap; padding: 0.5rem 1rem !important; gap: 0.4rem !important; border-top: none !important; flex: 1; }
+  .sidebar nav > * { width: auto !important; }
+  .sidebar > div:last-child { display: none; }
+  .main-content { min-height: 0; }
+  .topbar { padding: 0.85rem 1rem; }
+  .main-content > div[style*="padding:1.5rem 2rem"] { padding: 1rem !important; }
+}
+
+/* ── Dashboard stat grids ── */
+@media (max-width: 640px) {
+  .dash-stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 400px) {
+  .dash-stat-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ── Messages ── */
+@media (max-width: 768px) {
+  .messages-shell { height: calc(100vh - 58px); }
+  .thread-list { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 240px; overflow-y: auto; }
+  .chat-wrap { flex-direction: column; }
+  .info-panel { display: none; }
+  .msg { max-width: 88%; }
+}
+
+/* ── Auth page ── */
+@media (max-width: 480px) {
+  .auth-card { border-radius: 14px; }
+}
+
+/* ── General page padding on mobile ── */
+@media (max-width: 640px) {
+  .sp-page-section { padding-left: 1rem !important; padding-right: 1rem !important; }
+  .tx-row { padding: 0.85rem 1rem; }
+  .plan-card { padding: 1.4rem; }
 }

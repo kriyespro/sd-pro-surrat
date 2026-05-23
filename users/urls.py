@@ -10,6 +10,7 @@ urlpatterns = [
     path('auth/logout/', views.logout_view, name='logout'),
     path('auth/google/', views.google_login_start, name='google_login_start'),
     path('auth/google/callback/', views.google_callback, name='google_callback'),
+    path('auth/google/debug-uri/', views.google_debug_uri, name='google_debug_uri'),
     path('auth/password-reset/', auth_views.PasswordResetView.as_view(
         template_name='pages/auth/password_reset.jinja',
     ), name='password_reset'),

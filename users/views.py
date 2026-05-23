@@ -60,6 +60,15 @@ def logout_view(request):
     return redirect('home')
 
 
+def google_debug_uri(request):
+    """Temporary debug — shows the exact redirect_uri we send to Google."""
+    uri = google_auth.build_redirect_uri(request)
+    return HttpResponse(
+        f"<pre>redirect_uri = {uri}\n\nAdd this EXACTLY to Google Console → Authorized redirect URIs\n\nAlso set in .env.prod:\nGOOGLE_REDIRECT_URI={uri}</pre>",
+        content_type="text/html"
+    )
+
+
 def google_login_start(request):
     if not google_auth.google_oauth_enabled():
         messages.error(request, "Google sign-in is not configured.")

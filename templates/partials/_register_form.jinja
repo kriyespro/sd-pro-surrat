@@ -5,10 +5,10 @@
   hx-target="#register-form-wrap"
   hx-swap="innerHTML"
   class="space-y-4"
-  x-data="{role: '{{ form.role.value() if form and form.role.value() else 'client' }}'}"
+  id="reg-form"
 >
   <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-  <input type="hidden" name="role" :value="role">
+  <input type="hidden" name="role" id="reg-role-input" value="{{ form.role.value() if form and form.role.value() else 'client' }}">
 
   {% if form and form.non_field_errors() %}
     <div class="text-sm text-red-300 mb-2">
@@ -21,10 +21,23 @@
   <div>
     <p class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">I want to…</p>
     <div class="grid grid-cols-2 gap-2">
-      <button type="button" class="sp-btn-ghost role-card" :class="role==='client' ? 'selected' : ''" @click="role='client'">Hire Talent</button>
-      <button type="button" class="sp-btn-ghost role-card" :class="role==='freelancer' ? 'selected' : ''" @click="role='freelancer'">Find Work</button>
+      <button type="button" class="role-btn" id="role-btn-client" onclick="setRole('client')">
+        🏢 Hire Talent
+      </button>
+      <button type="button" class="role-btn" id="role-btn-freelancer" onclick="setRole('freelancer')">
+        💼 Find Work
+      </button>
     </div>
   </div>
+
+  <script>
+  function setRole(r) {
+    document.getElementById('reg-role-input').value = r;
+    document.querySelectorAll('.role-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.getElementById('role-btn-' + r).classList.add('active');
+  }
+  (function(){ setRole(document.getElementById('reg-role-input').value || 'client'); })();
+  </script>
 
   <div class="grid grid-cols-2 gap-3">
     <div>

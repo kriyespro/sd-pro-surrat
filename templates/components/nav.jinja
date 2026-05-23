@@ -1,4 +1,5 @@
-<nav class="sp-nav" x-data="{ open: false }">
+<div x-data="{ open: false }">
+<nav class="sp-nav">
   <a href="{{ url('home') }}" class="sp-logo">Surat<span>Pro</span></a>
 
   <div class="sp-nav-links">
@@ -25,12 +26,12 @@
     {% endif %}
   </div>
 
-  <button type="button" class="sp-hamburger" @click="open=!open" :class="open ? 'open' : ''" aria-label="Menu">
+  <button type="button" class="sp-hamburger" @click="open = !open" :class="{ 'open': open }" aria-label="Toggle menu">
     <span></span><span></span><span></span>
   </button>
 </nav>
 
-<div class="sp-mobile-nav" :class="open ? 'open' : ''" x-data x-show="$el.classList.contains('open')" style="display:none">
+<div class="sp-mobile-nav" x-show="open" x-cloak @click.outside="open = false">
   <a href="{{ url('browse') }}" class="sp-mobile-nav-link">Find Talent</a>
   <a href="{{ url('jobs_list') }}" class="sp-mobile-nav-link">Find Work</a>
   <a href="/pricing/" class="sp-mobile-nav-link">Pricing</a>
@@ -46,4 +47,5 @@
       <a href="{{ url('register') }}" class="sp-btn-gold" style="flex:1;justify-content:center;padding:0.7rem 1rem">Get Started →</a>
     {% endif %}
   </div>
+</div>
 </div>

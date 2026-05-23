@@ -1,6 +1,7 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 import json
 from decimal import Decimal
 
@@ -47,10 +48,16 @@ def payments_page(request):
     )
 
 
+@require_POST
 @login_required
 def add_funds(request):
     wallet, _ = Wallet.objects.get_or_create(user=request.user)
-    amount = Decimal(str(request.POST.get("amount") or "1000"))
+    try:
+        amount = Decimal(str(request.POST.get("amount") or "1000"))
+        if amount <= 0:
+            raise ValueError
+    except Exception:
+        return HttpResponse("<div class='sp-badge sp-badge-red'>Invalid amount.</div>", status=400)
     wallet.balance += amount
     wallet.save(update_fields=["balance"])
     Transaction.objects.create(wallet=wallet, type="topup", amount=amount, status="success", ref_id="manual-topup")
@@ -62,12 +69,18 @@ def razorpay_callback(request):
     return HttpResponse("<div class='sp-badge sp-badge-green'>Payment callback received</div>")
 
 
+@require_POST
 @login_required
 def release_funds(request, milestone_id):
     milestone = get_object_or_404(Milestone, id=milestone_id)
-    wallet, _ = Wallet.objects.get_or_create(user=milestone.contract.client)
+    if request.user != milestone.contract.client:
+        return HttpResponseForbidden("Only the client can release funds.")
+    if milestone.status != "approved":
+        return HttpResponse("<div class='sp-badge sp-badge-red'>Milestone must be approved first.</div>", status=400)
+    client_wallet, _ = Wallet.objects.get_or_create(user=milestone.contract.client)
+    freelancer_wallet, _ = Wallet.objects.get_or_create(user=milestone.contract.freelancer)
     Transaction.objects.create(
-        wallet=wallet,
+        wallet=client_wallet,
         type="release",
         amount=milestone.amount,
         status="success",
@@ -75,6 +88,8 @@ def release_funds(request, milestone_id):
         contract=milestone.contract,
         ref_id=f"release-{milestone.id}",
     )
+    freelancer_wallet.balance += milestone.amount
+    freelancer_wallet.save(update_fields=["balance"])
     milestone.status = "released"
     milestone.save(update_fields=["status"])
     return HttpResponse("<div class='sp-badge sp-badge-green'>Funds released</div>")
@@ -87,9 +102,12 @@ def transaction_list(request):
     return render(request, "partials/_transaction_row.jinja", {"transactions": transactions})
 
 
+@require_POST
 @login_required
 def dispute_contract(request, contract_id):
     contract = get_object_or_404(Contract, id=contract_id)
+    if request.user not in (contract.client, contract.freelancer):
+        return HttpResponseForbidden("Only contract parties can raise a dispute.")
     Dispute.objects.get_or_create(
         contract=contract,
         raised_by=request.user,

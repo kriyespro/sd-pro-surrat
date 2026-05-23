@@ -18,7 +18,7 @@ def search_freelancers(q="", category=None, min_rate=None, max_rate=None, min_ra
     if q:
         qs = qs.filter(Q(user__first_name__icontains=q) | Q(user__last_name__icontains=q) | Q(title__icontains=q))
     if category:
-        qs = qs.filter(skills__category__slug=category)
+        qs = qs.filter(Q(skills__category__slug=category) | Q(skills__category__name__iexact=category))
     if min_rate is not None:
         qs = qs.filter(hourly_rate__gte=min_rate)
     if max_rate is not None:

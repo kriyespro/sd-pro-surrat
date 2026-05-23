@@ -145,8 +145,9 @@ def job_detail(request, job_id):
         Job.objects.select_related("client", "category").prefetch_related("skills"),
         id=job_id,
     )
-    job.views_count += 1
-    job.save(update_fields=["views_count"])
+    from django.db.models import F
+    Job.objects.filter(pk=job.pk).update(views_count=F("views_count") + 1)
+    job.refresh_from_db(fields=["views_count"])
 
     existing_proposal = None
     proposal_count = job.proposals.count()
@@ -170,16 +171,36 @@ def search_results(request):
 def category_view(request, slug):
     category = get_object_or_404(Category, slug=slug)
     freelancers = search_freelancers(q="", category=category.name)
+    categories = Category.objects.all()
+    freelancers_data = [
+        {
+            "id": fl.id,
+            "username": fl.user.username,
+            "name": fl.user.get_full_name() or fl.user.username,
+            "initials": fl.user.initials,
+            "title": fl.title or "Freelancer",
+            "bio": fl.user.profile_summary or fl.user.bio or "Top-rated professional from Surat.",
+            "tags": [s.name for s in fl.skills.all()[:4]],
+            "rate": float(fl.hourly_rate or 0),
+            "rating": float(fl.avg_rating or 0),
+            "reviews": int(fl.total_reviews or 0),
+            "status": "online" if fl.availability == "available" else "busy",
+            "cat": category.name,
+            "color1": "#0D6E6E",
+            "color2": "#E8A830",
+        }
+        for fl in freelancers
+    ]
     return render(
         request,
         "pages/browse.jinja",
         {
             "freelancers": freelancers,
-            "categories": Category.objects.all(),
+            "categories": categories,
             "selected_category": category.name,
             "q": "",
-            "freelancers_data_json": "[]",
-            "category_names_json": "[]",
+            "freelancers_data_json": json.dumps(freelancers_data),
+            "category_names_json": json.dumps([c.name for c in categories]),
         },
     )
 
@@ -198,22 +219,36 @@ def propose_to_job(request, job_id):
     if not allowed:
         return HttpResponse(f"<div class='sp-badge sp-badge-red'>{reason}</div>", status=403)
     attachment = request.FILES.get("attachment")
+    try:
+        from decimal import Decimal, InvalidOperation
+        raw_rate = request.POST.get("proposed_rate") or ""
+        proposed_rate = Decimal(str(raw_rate)) if raw_rate else None
+    except InvalidOperation:
+        proposed_rate = None
     proposal = Proposal.objects.filter(job=job, freelancer=request.user).order_by("-id").first()
     if proposal:
         proposal.cover_letter = request.POST.get("cover_letter", proposal.cover_letter or "Interested in this project.")
-        proposal.proposed_rate = request.POST.get("proposed_rate") or proposal.proposed_rate or job.budget_min or 1000
-        proposal.delivery_days = request.POST.get("delivery_days") or proposal.delivery_days or 7
+        proposal.proposed_rate = proposed_rate or proposal.proposed_rate or job.budget_min or 1000
+        try:
+            from decimal import Decimal as _D
+            proposal.delivery_days = int(request.POST.get("delivery_days") or proposal.delivery_days or 7)
+        except (ValueError, TypeError):
+            pass
         proposal.status = "pending"
         if attachment:
             proposal.attachment = attachment
         proposal.save()
     else:
+        try:
+            delivery_days = int(request.POST.get("delivery_days") or 7)
+        except (ValueError, TypeError):
+            delivery_days = 7
         Proposal.objects.create(
             job=job,
             freelancer=request.user,
             cover_letter=request.POST.get("cover_letter", "Interested in this project."),
-            proposed_rate=request.POST.get("proposed_rate") or job.budget_min or 1000,
-            delivery_days=request.POST.get("delivery_days") or 7,
+            proposed_rate=proposed_rate or job.budget_min or 1000,
+            delivery_days=delivery_days,
             attachment=attachment,
             status="pending",
         )

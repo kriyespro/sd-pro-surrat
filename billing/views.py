@@ -6,7 +6,6 @@ from django.utils import timezone
 from .models import Plan, Subscription
 
 
-@login_required
 def pricing_page(request):
     plans = Plan.objects.filter(is_active=True).order_by("price_monthly")
     return render(request, 'pages/pricing.jinja', {'plans': plans})

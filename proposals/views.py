@@ -1,6 +1,7 @@
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
 from contracts.models import Contract
 from .models import Proposal
@@ -51,6 +52,7 @@ def dashboard_proposals(request):
     return render(request, "partials/_proposal_card.jinja", {"proposals": proposals})
 
 
+@require_POST
 @login_required
 def accept_proposal(request, proposal_id):
     proposal = _proposal_for_job_owner(request, proposal_id)
@@ -77,6 +79,7 @@ def accept_proposal(request, proposal_id):
     return HttpResponse("<div class='sp-badge sp-badge-green'>Proposal accepted</div>")
 
 
+@require_POST
 @login_required
 def reject_proposal(request, proposal_id):
     proposal = _proposal_for_job_owner(request, proposal_id)
@@ -89,6 +92,7 @@ def reject_proposal(request, proposal_id):
     return HttpResponse("<div class='sp-badge sp-badge-red'>Proposal rejected</div>")
 
 
+@require_POST
 @login_required
 def counter_proposal(request, proposal_id):
     proposal = _proposal_for_job_owner(request, proposal_id)

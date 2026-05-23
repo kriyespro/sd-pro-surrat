@@ -1,6 +1,7 @@
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
 from .models import Contract, Milestone, RevisionRequest
 
@@ -17,6 +18,7 @@ def contract_detail(request, contract_id):
     return render(request, "pages/contract.jinja", {"contracts": [contract]})
 
 
+@require_POST
 @login_required
 def sign_contract(request, contract_id):
     contract = get_object_or_404(Contract, id=contract_id)
@@ -68,22 +70,29 @@ def add_milestone(request, contract_id):
 """)
 
 
+@require_POST
 @login_required
 def submit_milestone(request, milestone_id):
     milestone = get_object_or_404(Milestone, id=milestone_id)
+    if request.user != milestone.contract.freelancer:
+        return HttpResponseForbidden("Only the assigned freelancer can submit deliverables.")
     milestone.status = "submitted"
     milestone.save(update_fields=["status"])
     return HttpResponse("<div class='sp-badge sp-badge-gold'>Deliverable submitted</div>")
 
 
+@require_POST
 @login_required
 def approve_milestone(request, milestone_id):
     milestone = get_object_or_404(Milestone, id=milestone_id)
+    if request.user != milestone.contract.client:
+        return HttpResponseForbidden("Only the client can approve milestones.")
     milestone.status = "approved"
     milestone.save(update_fields=["status"])
     return HttpResponse("<div class='sp-badge sp-badge-green'>Milestone approved</div>")
 
 
+@require_POST
 @login_required
 def revision_request(request, milestone_id):
     milestone = get_object_or_404(Milestone, id=milestone_id)

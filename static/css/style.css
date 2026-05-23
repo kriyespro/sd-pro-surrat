@@ -1400,3 +1400,19 @@ html.theme-dark .role-btn.active { background: rgba(232,168,48,0.14); }
   .tx-row { padding: 0.85rem 1rem; }
   .plan-card { padding: 1.4rem; }
 }
+
+/* ── Jobs list ── */
+@media (max-width: 640px) {
+  .jb-card-top { flex-wrap: wrap; }
+  .jb-budget { font-size: 0.88rem; }
+  .job-board { padding: 1.5rem 4%; }
+}
+
+/* ── Profile page ── */
+@media (max-width: 640px) {
+  .profile-stats > div { border-right: none !important; border-bottom: 1px solid var(--border); }
+  .profile-stats > div:last-child { border-bottom: none; }
+}
+
+/* ── Prevent horizontal scroll globally ── */
+body { overflow-x: hidden; }

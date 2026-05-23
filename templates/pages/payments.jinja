@@ -2,7 +2,19 @@
 {% block title %}Payments & Escrow{% endblock %}
 {% block meta_desc %}Manage payments on SuratPro{% endblock %}
 
-{% block extra_head %}{% endblock %}
+{% block extra_head %}
+<style>
+.pay-balance-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.2rem; margin-bottom: 2rem; }
+.pay-layout { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; }
+@media (max-width: 900px) {
+  .pay-balance-grid { grid-template-columns: 1fr 1fr; }
+  .pay-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .pay-balance-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
 
 {% block nav %}
   {% include 'components/nav.jinja' %}
@@ -17,7 +29,7 @@
   </div>
 
   <!-- Balance cards -->
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-bottom:2rem">
+  <div class="pay-balance-grid">
     <div class="payments-hero-teal">
       <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.05)"></div>
       <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:0.8rem">In Escrow (Protected)</div>
@@ -38,7 +50,7 @@
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 340px;gap:1.5rem">
+  <div class="pay-layout">
     <!-- LEFT: Transactions -->
     <div>
       <!-- Filters -->

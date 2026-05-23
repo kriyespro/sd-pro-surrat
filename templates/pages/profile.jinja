@@ -84,6 +84,21 @@
       display: block;
       margin-bottom: 0.5rem
     }
+
+    .profile-stats { display: grid; grid-template-columns: repeat(4,1fr); margin-bottom: 2rem; }
+    .profile-layout { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; }
+    .profile-portfolio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    @media (max-width: 900px) {
+      .profile-stats { grid-template-columns: repeat(2, 1fr); }
+      .profile-stats > div:nth-child(2n) { border-right: none !important; }
+      .profile-stats > div:nth-child(n+3) { border-top: 1px solid var(--border); }
+      .profile-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .profile-portfolio-grid { grid-template-columns: 1fr; }
+      .profile-header-row { flex-direction: column; align-items: flex-start !important; }
+    }
 </style>
 {% endblock %}
 
@@ -133,7 +148,7 @@
     </div>
 
     <!-- Rate + Stats strip -->
-    <div class="card" style="display:grid;grid-template-columns:repeat(4,1fr);margin-bottom:2rem">
+    <div class="card profile-stats">
       <div style="padding:1.2rem 1.5rem;border-right:1px solid var(--border);text-align:center">
         <div style="font-family:'Space Mono',monospace;font-size:1.5rem;color:var(--gold);font-weight:700">₹{{ freelancer_profile.hourly_rate if freelancer_profile else 0 }}</div>
         <div style="font-size:0.75rem;color:var(--text-muted)">per hour</div>
@@ -153,7 +168,7 @@
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 320px;gap:2rem">
+    <div class="profile-layout">
       <!-- LEFT -->
       <div>
         <!-- Tabs -->
@@ -208,7 +223,7 @@
         </div>
 
         <!-- PORTFOLIO -->
-        <div x-show="tab==='portfolio'" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div x-show="tab==='portfolio'" class="profile-portfolio-grid">
           {% for p in portfolio_items %}
           <div class="portfolio-item">
             <div class="portfolio-thumb" style="background:linear-gradient(135deg,var(--mid2),var(--mid))"><span>💼</span></div>

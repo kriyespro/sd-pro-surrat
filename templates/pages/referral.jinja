@@ -2,7 +2,19 @@
 {% block title %}Refer & Earn{% endblock %}
 {% block meta_desc %}Refer friends and earn on SuratPro{% endblock %}
 
-{% block extra_head %}{% endblock %}
+{% block extra_head %}
+<style>
+.ref-stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; margin-bottom: 2rem; }
+.ref-layout { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; }
+@media (max-width: 900px) {
+  .ref-stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .ref-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .ref-stats-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+{% endblock %}
 
 {% block nav %}
   {% include 'components/nav.jinja' %}
@@ -38,7 +50,7 @@
 <div style="max-width:1100px;margin:0 auto;padding:2rem 5% 4rem">
 
   <!-- Earnings stats -->
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem">
+  <div class="ref-stats-grid">
     <div class="stat-card">
       <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.6rem">Total Earned</div>
       <div style="font-family:'Space Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--gold)">₹{{ total_earned }}</div>
@@ -61,7 +73,7 @@
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 340px;gap:1.5rem">
+  <div class="ref-layout">
     <!-- LEFT -->
     <div style="display:flex;flex-direction:column;gap:1.5rem">
 

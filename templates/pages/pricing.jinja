@@ -2,7 +2,18 @@
 {% block title %}Pricing Plans{% endblock %}
 {% block meta_desc %}SuratPro subscription plans{% endblock %}
 
-{% block extra_head %}{% endblock %}
+{% block extra_head %}
+<style>
+.pricing-plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; align-items: start; }
+.commission-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 16px; }
+@media (max-width: 900px) {
+  .pricing-plans-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .pricing-plans-grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+}
+</style>
+{% endblock %}
 
 {% block nav %}
   {% include 'components/nav.jinja' %}
@@ -44,7 +55,7 @@
 
 <!-- PLANS -->
 <section style="padding:0 5% 5rem;max-width:1100px;margin:0 auto">
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;align-items:start">
+  <div class="pricing-plans-grid">
 
     <!-- FREE -->
     <div class="plan-card basic">
@@ -106,7 +117,8 @@
   </div>
 
   <!-- Commission comparison -->
-  <div style="margin-top:3rem;background:var(--mid);border:1px solid var(--border);border-radius:16px;overflow:hidden">
+  <div class="commission-wrap" style="margin-top:3rem">
+  <div style="background:var(--mid);border:1px solid var(--border);border-radius:16px;overflow:hidden;min-width:480px">
     <div style="padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700">Platform Commission Comparison</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:1px solid var(--border)">
       <div style="padding:0.8rem 1.5rem;font-size:0.78rem;font-weight:700;color:var(--text-dim)">Platform</div>
@@ -123,6 +135,7 @@
       </div>
     </template>
   </div>
+  </div><!-- /commission-wrap -->
 
   <!-- FAQ -->
   <div style="margin-top:3rem;max-width:700px;margin-left:auto;margin-right:auto">

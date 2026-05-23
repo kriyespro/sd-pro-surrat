@@ -4,10 +4,21 @@
 
 {% block nav %}{% include 'components/nav.jinja' %}{% endblock %}
 
+{% block extra_head %}
+<style>
+.jd-layout { display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: start; }
+.jd-sidebar { position: sticky; top: 1.5rem; }
+@media (max-width: 768px) {
+  .jd-layout { grid-template-columns: 1fr; }
+  .jd-sidebar { position: static; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <main style="max-width:1080px;margin:0 auto;padding:2rem 5%">
 
-  <div style="display:grid;grid-template-columns:1fr 340px;gap:2rem;align-items:start">
+  <div class="jd-layout">
 
     <!-- Left: Job details -->
     <div>
@@ -92,7 +103,7 @@
     </div>
 
     <!-- Right: Proposal form / status -->
-    <div style="position:sticky;top:1.5rem">
+    <div class="jd-sidebar">
 
       {% if not request.user.is_authenticated %}
       <div class="sp-card p-6 text-center">
